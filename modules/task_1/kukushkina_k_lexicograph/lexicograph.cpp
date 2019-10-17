@@ -36,9 +36,8 @@ bool isFragmentOrdered(const std::string source) {
     return true;
   int size = static_cast<int>(source.size());
   for (int i = 1; i < size; i++)
-    if (source[i] < source[i - 1]) 
-    {
-      if ((source[i - 1] != '*') && (source[i] != '*')) 
+    if (source[i] < source[i - 1]) {
+      if ((source[i - 1] != '*') && (source[i] != '*'))
         return false;
     }
   return true;
