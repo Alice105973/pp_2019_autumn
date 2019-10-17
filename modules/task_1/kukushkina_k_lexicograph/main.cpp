@@ -29,17 +29,17 @@ TEST(Lexicograph, unordered_string_testing) {
 }
 
 TEST(Lexicograph, one_symbol_string_testing) {
-  std::string s = "000000000";
+  std::string s = "*";
   ASSERT_EQ(isFragmentOrdered(s), true);
 }
 
 TEST(Lexicograph, null_string_testing) {
   std::string s;
-  ASSERT_NO_THROW(isFragmentOrdered(s));
+  ASSERT_EQ(isFragmentOrdered(s), true);
 }
 
 TEST(Lexicograph, two_ordered_strings_testing) {
-  std::string s1 = "08ASbf", s2 = "abcd";
+  std::string s1 = "08ASbfz", s2 = "Aabcd";
   ASSERT_EQ(isStringOrdered(s1, s2), true);
 }
 

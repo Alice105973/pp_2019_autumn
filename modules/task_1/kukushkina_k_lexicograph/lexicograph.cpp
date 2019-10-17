@@ -32,12 +32,13 @@ std::string generateString(const int length) {
 }
 
 bool isFragmentOrdered(const std::string source) {
-  if (source.empty())
+  if (static_cast<int>(source.size()) < 2)
     return true;
-  int size = source.size();
+  int size = static_cast<int>(source.size());
   for (int i = 1; i < size; i++)
-    if (source[i] < source[i - 1]) {
-      if ((source[i - 1] != ' ') && (source[i] != ' '))
+    if (source[i] < source[i - 1]) 
+    {
+      if ((source[i - 1] != '*') && (source[i] != '*')) 
         return false;
     }
   return true;
@@ -47,32 +48,36 @@ bool isStringOrdered(const std::string source1, const std::string source2) {
   if (source1.empty() || source2.empty()) {
     throw "Empty string";
   }
-
   std::string source(source1);
-  source += ' ' + source2 + ' ';
+  source += '*' + source2 + '*';
   int size, rank;
   MPI_Comm_size(MPI_COMM_WORLD, &size);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
-  int len = source.size() / size;
-  int rem = source.size() % size;
+  int len = (static_cast<int>(source.size()) - 1) / size;
+  int rem = (static_cast<int>(source.size()) - 1) % size;
   bool lres, res;
   if (rank == 0) {
     for (int process = 1; process < size; process++) {
-      MPI_Send(&source[0] + process * len + rem, len + 1,
-        MPI_CHAR, process, 0, MPI_COMM_WORLD);
+      int start, end;
+      start = process * len + rem;
+      end = start + len;
+      MPI_Send(&start, 1, MPI_INT, process, 3, MPI_COMM_WORLD);
+      MPI_Send(&end, 1, MPI_INT, process, 4, MPI_COMM_WORLD);
     }
   }
-
-  std::string str;
+  std::string str = "";
+  int start, end;
   if (rank == 0) {
     str = source.substr(0, len + rem + 1);
   } else {
     MPI_Status status;
-    MPI_Recv(&str[0], len + 1, MPI_CHAR, 0, 0, MPI_COMM_WORLD, &status);
+    MPI_Recv(&start, 1, MPI_INT, 0, 3, MPI_COMM_WORLD, &status);
+    MPI_Recv(&end, 1, MPI_INT, 0, 4, MPI_COMM_WORLD, &status);
+    for (int i = start; i <= end; i++)
+      str += source[i];
   }
-
   lres = isFragmentOrdered(str);
-  MPI_Reduce(&lres, &res, 1, MPI_C_BOOL, MPI_LAND, 0, MPI_COMM_WORLD);
+  MPI_Barrier(MPI_COMM_WORLD);
+  MPI_Allreduce(&lres, &res, 1, MPI_C_BOOL, MPI_LAND, MPI_COMM_WORLD);
   return res;
 }
