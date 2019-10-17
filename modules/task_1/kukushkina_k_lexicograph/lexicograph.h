@@ -7,8 +7,8 @@
 #include <string>
 
 std::string generateString(const int length);
-bool isFragmentOrdered (const std::string source);
+bool isFragmentOrdered(const std::string source);
 bool isStringOrdered(const std::string source1, const std::string source2);
 
 
-#endif // MODULES_TASK_1_KUKUSHKINA_K_LEXICOGRAPH_LEXICOGRAPH_H_
+#endif  // MODULES_TASK_1_KUKUSHKINA_K_LEXICOGRAPH_LEXICOGRAPH_H_

@@ -1,7 +1,5 @@
 // Copyright 2019 Kukushkina Ksenia
-
 #include <mpi.h>
-
 #include <string>
 #include <algorithm>
 #include <vector>
@@ -9,11 +7,9 @@
 #include <ctime>
 #include <iostream>
 
-#include "lexicograph.h"
-
+#include "../../../modules/task_1/kukushkina_k_lexicograph/lexicograph.h"
 
 std::string generateString(const int length) {
-  
   if (length <= 0)
     throw "Wrong size";
   int n;
@@ -22,15 +18,15 @@ std::string generateString(const int length) {
     n = std::rand() % 3;
     switch (n) {
     case 0:
-      s += char(std::rand() % 10 + 48); // 0 - 9
+      s += static_cast<char>(std::rand() % 10 + 48);  //  0 - 9
       break;
     case 1:
-      s += char(std::rand() % 26 + 65); // A - Z
-      break; 
-    case 2:
-      s += char(std::rand() % 26 + 97); // a - z
+      s += static_cast<char>(std::rand() % 26 + 65);  //  A - Z
       break;
-    }   
+    case 2:
+      s += static_cast<char>(std::rand() % 26 + 97);  //  a - z
+      break;
+    }
   }
   return s;
 }
@@ -40,10 +36,10 @@ bool isFragmentOrdered(const std::string source) {
     return true;
   int size = source.size();
   for (int i = 1; i < size; i++)
-    if (source[i] < source[i - 1])
-      if ((source[i - 1] != ' ') && (source[i] != ' ')) {
+    if (source[i] < source[i - 1]) {
+      if ((source[i - 1] != ' ') && (source[i] != ' '))
         return false;
-      }
+    }
   return true;
 }
 
@@ -71,8 +67,7 @@ bool isStringOrdered(const std::string source1, const std::string source2) {
   std::string str;
   if (rank == 0) {
     str = source.substr(0, len + rem + 1);
-  }
-  else {
+  } else {
     MPI_Status status;
     MPI_Recv(&str[0], len + 1, MPI_CHAR, 0, 0, MPI_COMM_WORLD, &status);
   }
