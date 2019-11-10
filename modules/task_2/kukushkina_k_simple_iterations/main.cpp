@@ -1,6 +1,7 @@
 // Copyright 2019 Kukushkina Ksenia
 #include <gtest/gtest.h>
 #include <gtest-mpi-listener.hpp>
+#include <vector>
 #include "../../../modules/task_2/kukushkina_k_simple_iterations/simple_iterations.h"
 
 TEST(Simple_Iterations, Vector_Random_Generation) {
@@ -41,7 +42,7 @@ TEST(Simple_Iterations, SLAE_1) {
   std::vector<double> b = { 14, 11, 12 };
   std::vector<double> x = SimpleIterations(A, b, 0.0001);
   double sum = x[0] + x[1] + x[2];
-  ASSERT_NEAR(sum, 6, 0.0003);  // решение = (1, 2, 3), три компоненты -> точность*=3
+  ASSERT_NEAR(sum, 6, 0.0003);  // (1, 2, 3), 3 components -> precision*=3
 }
 
 int main(int argc, char** argv) {
