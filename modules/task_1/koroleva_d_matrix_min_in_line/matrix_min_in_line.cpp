@@ -7,6 +7,9 @@
 #include "../../../modules/task_1/koroleva_d_matrix_min_in_line/matrix_min_in_line.h"
 
 std::vector<int> getRandomMatrix(int m, int n) {
+    if (m <= 0 || n <= 0)
+        throw - 1;
+
     std::mt19937 gen;
     gen.seed(static_cast<unsigned int>(time(0)));
     int elem_num = m * n;
@@ -18,6 +21,9 @@ std::vector<int> getRandomMatrix(int m, int n) {
 }
 
 std::vector<int> getMinsInMatrixLines(const std::vector<int>& matr, int m, int n) {
+    if (m <= 0 || n <= 0)
+        throw - 1;
+
     std::vector<int> out;
     for (int i = 0; i < m; ++i) {
         int firstelem_num = i * n;
@@ -37,6 +43,9 @@ std::vector<int> getParallelMinsInMatrixLines
     int size, rank;
     MPI_Comm_size(MPI_COMM_WORLD, &size);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+    if (size > m) size = m;
+    if (rank >= size) return std::vector<int>();
 
     const int delta_lines = m / size;
     const int delta_ints = delta_lines * n;

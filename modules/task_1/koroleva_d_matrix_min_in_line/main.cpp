@@ -4,7 +4,7 @@
 #include <vector>
 #include "./matrix_min_in_line.h"
 
-TEST(Parallel_Operations_MPI, Test_Random_Matrix_Size) {
+TEST(Sequential_Operations_MPI, Test_Random_Matrix_Size) {
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     if (rank != 0) return;
@@ -18,7 +18,23 @@ TEST(Parallel_Operations_MPI, Test_Random_Matrix_Size) {
     ASSERT_EQ(expected_size, matr.size());
 }
 
-TEST(Parallel_Operations_MPI, Test_Matrix_Mins_Correctness) {
+TEST(Sequential_Operations_MPI, Test_Throw_When_M_Is_Zero) {
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    if (rank != 0) return;
+
+    const int count_size_m = 0;
+    const int count_size_n = 5;
+
+    std::vector<int> matr = { 1, 1, 1, 1, 129723,
+                              32, 0, 123, 5, 5,
+                              7, 7, 7, 7, 7,
+                              123, -10, 323, 75, 3 };
+
+    ASSERT_ANY_THROW(getMinsInMatrixLines(matr, count_size_m, count_size_n););
+}
+
+TEST(Sequential_Operations_MPI, Test_Get_Correct_Mins_In_Matrix) {
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     if (rank != 0) return;
@@ -29,14 +45,30 @@ TEST(Parallel_Operations_MPI, Test_Matrix_Mins_Correctness) {
                               32, 0, 123, 5, 5,
                               7, 7, 7, 7, 7,
                               123, -10, 323, 75, 3 };
-    std::vector<int> expected_res = { 1, 0, 7, -10};
+    std::vector<int> expected_res = { 1, 0, 7, -10 };
 
     std::vector<int> mins = getMinsInMatrixLines(matr, m, n);
 
     EXPECT_EQ(expected_res, mins);
 }
 
-TEST(Parallel_Operations_MPI, Test_Get_Parallel_Mins_In_Small_Matrix) {
+TEST(Parallel_Operations_MPI, Test_Throw_When_Negaive_N) {
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    const int count_size_m = 4;
+    const int count_size_n = -5;
+
+    std::vector<int> matr = { 1, 1, 1, 1, 129723,
+                              32, 0, 123, 5, 5,
+                              7, 7, 7, 7, 7,
+                              123, -10, 323, 75, 3 };
+
+    if (rank == 0) {
+        ASSERT_ANY_THROW(getMinsInMatrixLines(matr, count_size_m, count_size_n));
+    }
+}
+
+TEST(Parallel_Operations_MPI, Test_Get_Mins_In_Small_Matrix) {
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     std::vector<int> global_vec;
@@ -55,12 +87,12 @@ TEST(Parallel_Operations_MPI, Test_Get_Parallel_Mins_In_Small_Matrix) {
     }
 }
 
-TEST(Parallel_Operations_MPI, Test_Get_Parallel_Mins_In_Big_Matrix) {
+TEST(Parallel_Operations_MPI, Test_Get_Mins_In_Big_Matrix) {
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     std::vector<int> global_vec;
-    const int count_size_m = 321;
-    const int count_size_n = 53;
+    const int count_size_m = 1034;
+    const int count_size_n = 3323;
 
     if (rank == 0) {
         global_vec = getRandomMatrix(count_size_m, count_size_n);
