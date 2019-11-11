@@ -56,7 +56,7 @@ std::vector<double> GenerateVector(int n) {
   if (n <= 0)
     throw "Wrong size";
   std::vector<double> A(n);
-  std::cout << A.max_size();
+  std::cout << A.max_size() << std::endl;
   if (n > static_cast<int>(A.max_size()))
     throw "Overflow";
   std::mt19937 gen(static_cast<int>(time(0)));

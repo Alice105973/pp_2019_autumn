@@ -5,7 +5,7 @@
 #include "../../../modules/task_2/kukushkina_k_simple_iterations/simple_iterations.h"
 
 TEST(Simple_Iterations, Vector_Random_Generation) {
-  ASSERT_NO_THROW(GenerateVector(1000000000));
+  ASSERT_NO_THROW(GenerateVector(1000000));
 }
 
 TEST(Simple_Iterations, Incorrect_Size_Vector_Random_Generation) {
@@ -13,7 +13,7 @@ TEST(Simple_Iterations, Incorrect_Size_Vector_Random_Generation) {
 }
 
 TEST(Simple_Iterations, Matrix_Random_Generation) {
-  ASSERT_NO_THROW(GenerateMatrix(10000));
+  ASSERT_NO_THROW(GenerateMatrix(1000));
 }
 
 TEST(Simple_Iterations, Incorrect_Size_Matrix_Random_Generation) {
@@ -23,6 +23,7 @@ TEST(Simple_Iterations, Incorrect_Size_Matrix_Random_Generation) {
 TEST(Simple_Iterations, Non_Equal_A_and_b_Sizez) {
   std::vector<double> A = GenerateMatrix(10);
   std::vector<double> b = GenerateVector(11);
+  ASSERT_ANY_THROW(SimpleIterations(A, b, 0.0001));
 }
 
 TEST(Simple_Iterations, Zero_Element) {
