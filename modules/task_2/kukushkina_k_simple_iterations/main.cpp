@@ -6,7 +6,6 @@
 #include "./simple_iterations.h"
 
 TEST(Simple_Iterations, norm_testing) {
-  const int size = 4;
   std::vector<double> test = { 0, -7, 4, 6 };
   ASSERT_EQ(Norm(test), 7);
 }
