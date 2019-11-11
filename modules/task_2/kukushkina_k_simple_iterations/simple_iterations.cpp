@@ -5,8 +5,6 @@
 #include <ctime>
 #include <random>
 
-static int offset = 0;
-
 double preprocess(std::vector<double> A, std::vector<double> b) {  // returns modified A norm
   if (A.size() != b.size() * b.size())
     throw "non-equal dimensions";
@@ -57,7 +55,9 @@ std::vector<double> GenerateVector(int n) {
   if (n <= 0)
     throw "Wrong size";
   std::vector<double> A(n);
-  std::mt19937 gen;
+  if (n > A.max_size())
+    throw "Overflow";
+  std::mt19937 gen(time(0));
   int rank, size, start, end;
   MPI_Status stat;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -79,7 +79,6 @@ std::vector<double> GenerateVector(int n) {
     MPI_Recv(&end, 1, MPI_INT, 0, 4, MPI_COMM_WORLD, &stat);
   }
   for (int i = start; i < end; i++) {
-    gen.seed(static_cast<int>(time(0)) + ++offset);
     A[i] = gen() % 100;
   }
   MPI_Barrier(MPI_COMM_WORLD);
