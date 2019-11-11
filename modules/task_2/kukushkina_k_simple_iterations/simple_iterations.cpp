@@ -4,6 +4,7 @@
 #include <vector>
 #include <ctime>
 #include <random>
+#include <iostream>
 
 double preprocess(std::vector<double> A, std::vector<double> b) {  // returns modified A norm
   if (A.size() != b.size() * b.size())
@@ -55,6 +56,7 @@ std::vector<double> GenerateVector(int n) {
   if (n <= 0)
     throw "Wrong size";
   std::vector<double> A(n);
+  std::cout << A.max_size();
   if (n > static_cast<int>(A.max_size()))
     throw "Overflow";
   std::mt19937 gen(static_cast<int>(time(0)));
