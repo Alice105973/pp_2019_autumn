@@ -5,7 +5,7 @@
 #include "../../../modules/task_2/kukushkina_k_simple_iterations/simple_iterations.h"
 
 TEST(Simple_Iterations, Vector_Random_Generation) {
-  ASSERT_NO_THROW(GenerateVector(100000));
+  ASSERT_NO_THROW(GenerateVector(100000000000));
 }
 
 TEST(Simple_Iterations, Incorrect_Size_Vector_Random_Generation) {

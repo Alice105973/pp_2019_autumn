@@ -134,8 +134,8 @@ std::vector<double> SimpleIterations(std::vector<double> A, std::vector<double> 
       xnew[i] = b[i];
       for (int j = 0; j < n; j++)  // columns
         xnew[i] += A[n * i + j] * xold[j];  // i-str * j-col
-      if (abs(xnew[i] - xold[i]) > vecnorm)
-        vecnorm = abs(xnew[i] - xold[i]);
+      if (std::abs(xnew[i] - xold[i]) > vecnorm)
+        vecnorm = std::abs(xnew[i] - xold[i]);
     }
     MPI_Barrier(MPI_COMM_WORLD);
     MPI_Allreduce(&vecnorm, &vecnorm, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
