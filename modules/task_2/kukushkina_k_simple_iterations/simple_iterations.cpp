@@ -39,9 +39,8 @@ std::vector<double> Simple_Iterations(std::vector<double> A, std::vector<double>
     throw "No diagonal prevalence";
   std::vector<double> xold(b);
   std::vector<double> xnew(b);
-  
-  do {
 
+  do {
     xold = xnew;
     xnew = b;
     norm = 0;
@@ -82,10 +81,10 @@ std::vector<double> Simple_Iterations_MPI(std::vector<double> A, std::vector<dou
     countsmat[i] = len * n;
     displsvec[i] = (len * i + rem) * n;
   }
-  
   std::vector<double> lb(countsvec[rank]);  // local part of b
   std::vector<double> lA(countsvec[rank] * n);  // local part of A
-  std::vector<double> xnew(countsvec[rank]);  // local part of xnew (there's no global one, theese parts gathering into xold)
+  std::vector<double> xnew(countsvec[rank]);  // local part of xnew 
+  // there's no global one, theese parts gathering into xold
 
   MPI_Scatterv(&b[0], countsvec, displsvec, MPI_DOUBLE, &lb[0], countsvec[rank], MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Scatterv(&A[0], countsmat, displsmat, MPI_DOUBLE, &lA[0], countsmat[rank], MPI_DOUBLE, 0, MPI_COMM_WORLD);
@@ -111,7 +110,8 @@ std::vector<double> Simple_Iterations_MPI(std::vector<double> A, std::vector<dou
   if (norm >= 1)
     throw "No diagonal prevalence";
 
-  MPI_Gatherv(&lb, countsvec[rank], MPI_DOUBLE, &xold, countsvec, displsvec, MPI_DOUBLE, 0, MPI_COMM_WORLD);  // gathering xold = modified b
+  MPI_Gatherv(&lb, countsvec[rank], MPI_DOUBLE, &xold, countsvec, displsvec, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  // gathering xold = modified b
   MPI_Bcast(&xold, n, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
   do {
@@ -124,7 +124,8 @@ std::vector<double> Simple_Iterations_MPI(std::vector<double> A, std::vector<dou
         norm = std::abs(xnew[i] - xold[i]);
     }
     MPI_Barrier(MPI_COMM_WORLD);
-    MPI_Gatherv(&xnew, countsvec[rank], MPI_DOUBLE, &xold, countsvec, displsvec, MPI_DOUBLE, 0, MPI_COMM_WORLD);  // refreshing xold
+    MPI_Gatherv(&xnew, countsvec[rank], MPI_DOUBLE, &xold, countsvec, displsvec, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+	// refreshing xold
     MPI_Bcast(&xold, n, MPI_DOUBLE, 0, MPI_COMM_WORLD);
     MPI_Allreduce(&norm, &norm, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
     MPI_Barrier(MPI_COMM_WORLD);
