@@ -7,7 +7,7 @@
 
 static int offset = 0;
 
-double preprocess(std::vector<double>& A, std::vector<double>& b) {  // returns modified A norm
+double preprocess(std::vector<double> A, std::vector<double> b) {  // returns modified A norm
   if (A.size() != b.size() * b.size())
     throw "non-equal dimensions";
   int rank, size, start, end;
@@ -93,7 +93,7 @@ std::vector<double> GenerateMatrix(int n) {
   return GenerateVector(n * n);
 }
 
-std::vector<double> SimpleIterations(std::vector<double>& A, std::vector<double>& b, double precision) {
+std::vector<double> SimpleIterations(std::vector<double> A, std::vector<double> b, double precision) {
   if (A.size() != b.size() * b.size())
     throw "non-equal dimensions";
   int n = static_cast<int>(b.size());
