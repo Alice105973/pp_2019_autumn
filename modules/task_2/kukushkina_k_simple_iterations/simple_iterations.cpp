@@ -37,8 +37,7 @@ double preprocess(std::vector<double> A, std::vector<double> b) {  // returns mo
       throw "Zero element";
     b[j] /= A[j * n + j];  // division by main diag element
     for (int i = j * n; i < (j + 1) * n; i++)
-      if (i == j * (n + 1))
-      {
+      if (i == j * (n + 1)) {
         A[i] = 0;  // main diag element
       } else {
         A[i] /= A[j * n + j];
