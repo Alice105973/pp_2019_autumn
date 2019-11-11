@@ -51,35 +51,11 @@ double** ImageSmoothing(double** mas, const int n, const int m) {
     extra = 1;
   }
 
-  if (rank == 0) {
-    double* ssend = new double[n*m];
-    int tmp = 0;
-    for (int i=0; i < n; i++)
-      for (int j = 0; j < m; j++) {
-        ssend[tmp] = mas[i][j];
-        tmp++;
-      }
-    for (int i = 1; i < size; i++) {
-      if (i == size - 1)
-        extra = 0;
-      MPI_Send(&ssend[m*(delta + ost - 1)] + (i-1) * delta * m,
-        m*(delta + extra + 1), MPI_DOUBLE, i, 1, MPI_COMM_WORLD);
-    }
-    delete[] ssend;
-  }
-
-  double** workmas = NULL;
   double** prom_res = NULL;
 
   if (rank == 0) {
     if (size > 1)
       extra = 1;
-    workmas = new double*[delta + ost + extra];
-    for (int i = 0; i < delta + ost + extra; i++)
-      workmas[i] = new double[m];
-    for (int i = 0; i < delta + ost + extra; i++)
-      for (int j = 0; j < m; j++)
-        workmas[i][j] = mas[i][j];
 
     prom_res = new double*[delta + ost];
     for (int i = 0; i < delta + ost; i++)
@@ -103,30 +79,25 @@ double** ImageSmoothing(double** mas, const int n, const int m) {
               continue;
             if ((tmp1 == j) && (tmp2 == i))
               continue;
-            middle += workmas[tmp2][tmp1];
+            middle += mas[tmp2][tmp1];
             count++;
           }
         prom_res[i][j] = middle / count;
       }
-    delete[] workmas;
   } else {
     if (f == 0) {
-      double* b = new double[m*(delta + 2)];
       if (rank == size - 1)
         extra = 1;
       else
         extra = 2;
-      MPI_Recv(&b[0], m*(delta + extra), MPI_DOUBLE, 0, 1, MPI_COMM_WORLD, &status);
-      workmas = new double*[delta + extra];
-      for (int i = 0; i < delta + extra; i++)
+      double** workmas = new double*[delta + extra];
+      for (int i = 0; i < delta + extra; i++) {
         workmas[i] = new double[m];
-      int tmp = 0;
-      for (int i = 0; i < delta + extra; i++)
         for (int j = 0; j < m; j++) {
-          workmas[i][j] = b[tmp];
-          tmp++;
+          workmas[i][j] = mas[delta*rank + ost - 1 + i][j];
         }
-      delete[] b;
+      }
+
       prom_res = new double*[delta];
       for (int i = 0; i < delta; i++)
         prom_res[i] = new double[m];
@@ -158,10 +129,10 @@ double** ImageSmoothing(double** mas, const int n, const int m) {
   }
 
   if (f == 0) {
-    double** res = new double*[n];
-    for (int i = 0; i < n; i++)
-      res[i] = new double[m];
     if (rank == 0) {
+      double** res = new double*[n];
+      for (int i = 0; i < n; i++)
+        res[i] = new double[m];
       for (int i = 0; i < delta + ost; i++)
         for (int j = 0; j < m; j++)
           res[i][j] = prom_res[i][j];
@@ -178,6 +149,9 @@ double** ImageSmoothing(double** mas, const int n, const int m) {
         }
         delete[] b;
       }
+
+      return res;
+
     } else {
       double* send = new double[delta*m];
       int tmp = 0;
@@ -190,12 +164,10 @@ double** ImageSmoothing(double** mas, const int n, const int m) {
       delete[] send;
     }
     delete[] prom_res;
-    return res;
   } else {
     if (rank == 0) {
       return prom_res;
-    } else {
-      return NULL;
     }
   }
+  return NULL;
 }

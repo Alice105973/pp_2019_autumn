@@ -33,7 +33,7 @@ std::vector<int> getConstVector(int n, int c) {
 }
 
 std::vector <int> MatrixOnVector(const std::vector <int> &matr, int cols,
-                                 int rows, const std::vector <int> &vect) {
+    int rows, const std::vector <int> &vect) {
     int size;
     int rank;
     int ost;
@@ -52,51 +52,46 @@ std::vector <int> MatrixOnVector(const std::vector <int> &matr, int cols,
     }
     k = rows / size;
 
+    std::vector <int> res_part_vec(k);
+    std::vector <int> res_vec(rows);
+
     if (rank == 0) {
-        int buf1;
-        for (int i = cols * (k + ost); i <= cols * (rows - k); i += cols * k) {
-            buf1 = (i / cols - ost) / k;
-            MPI_Send(&matr[i], cols * k, MPI_INT, buf1, 0, MPI_COMM_WORLD);
+        res_part_vec.resize(k + ost);
+        for (int i = 0; i < cols * (k + ost); i += cols) {
+            for (int j = 0; j < cols; j++)
+                res_part_vec[i / cols] += matr[i + j] * vect[j];
         }
     }
 
-    MPI_Status status;
-    std::vector <int> res_vec_null_proc(k + ost, 0);
-    std::vector <int> res_vec_other_proc(k, 0);
-    std::vector <int> res_vec(rows, 0);
-    std::vector <int> part_matr(cols * k, 0);
-
-    if (rank == 0) {
-        for (int i = 0; i < cols * (k + ost); i += cols) {
-            for (int j = 0; j < cols; j++)
-                res_vec_null_proc[i / cols] += matr[i + j] * vect[j];
-        }
-    } else {
-        if (flag == 0) {
-            int q = cols * k;
-            MPI_Recv(&part_matr[0], q, MPI_INT, 0, 0, MPI_COMM_WORLD, &status);
-            for (int i = 0; i < cols * k; i += cols) {
-                for (int j = 0; j < cols; j++)
-                    res_vec_other_proc[i / cols] += part_matr[i + j] * vect[j];
+    int index_rank = 1;
+    int index_vec = 0;
+    if (flag == 0) {
+        while (index_rank < size) {
+            if (rank == index_rank) {
+                index_vec = 0;
+                for (int i = cols * (ost + index_rank * k);
+                    i < cols * (ost + (index_rank + 1) * k); i += cols) {
+                    for (int j = 0; j < cols; j++) {
+                        res_part_vec[index_vec] += matr[i + j] * vect[j];
+                    }
+                    index_vec++;
+                }
             }
+            index_rank++;
         }
     }
 
     if (flag == 0) {
-        MPI_Gather(&res_vec_other_proc[0], k, MPI_INT,
+        MPI_Gather(&res_part_vec[0], k, MPI_INT,
             &res_vec[ost], k, MPI_INT, 0, MPI_COMM_WORLD);
         if (rank == 0) {
             for (int i = 0; i < k + ost; i++)
-                res_vec[i] = res_vec_null_proc[i];
-        }
-        if (rank == 0) {
-            for (int i = 0; i < k + ost; i++)
-                res_vec[i] = res_vec_null_proc[i];
+                res_vec[i] = res_part_vec[i];
         }
         return res_vec;
     } else {
         if (rank == 0) {
-            return res_vec_null_proc;
+            return res_part_vec;
         } else {
             std::vector <int> excep_vec = { -1 };
             return excep_vec;

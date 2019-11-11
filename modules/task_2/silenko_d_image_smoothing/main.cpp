@@ -175,41 +175,45 @@ TEST(image_smoothing_mpi, test_on_my_rect_matrix_2) {
 }
 
 TEST(image_smoothing_mpi, test_on_my_rand_matrix) {
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   int n = 60;
   int m = 90;
   double** mas = getRandomMas(n, m);
-  double** result = new double*[n];
-  for (int i = 0; i < n; i++)
-    result[i] = new double[m];
+  double** result;
 
-  for (int i = 0; i < n; i++)
-    for (int j = 0; j < m; j++) {
-      int count = 0;
-      double middle = 0;
-      for (int l = -1; l < 2; l++)
-        for (int ll = -1; ll < 2; ll++) {
-          int tmp1 = j + l;
-          if (tmp1 < 0)
-            continue;
-          if (tmp1 >= m)
-            continue;
-          int tmp2 = i + ll;
-          if (tmp2 < 0)
-            continue;
-          if (tmp2 >= (n))
-            continue;
-          if ((tmp1 == j) && (tmp2 == i))
-            continue;
-          middle += mas[tmp2][tmp1];
-          count++;
-        }
-      result[i][j] = middle / count;
-    }
+  if (rank == 0) {
+    result = new double*[n];
+    for (int i = 0; i < n; i++)
+      result[i] = new double[m];
+    for (int i = 0; i < n; i++)
+      for (int j = 0; j < m; j++) {
+        int count = 0;
+        double middle = 0;
+        for (int l = -1; l < 2; l++)
+          for (int ll = -1; ll < 2; ll++) {
+            int tmp1 = j + l;
+            if (tmp1 < 0)
+              continue;
+            if (tmp1 >= m)
+              continue;
+            int tmp2 = i + ll;
+            if (tmp2 < 0)
+              continue;
+            if (tmp2 >= (n))
+              continue;
+            if ((tmp1 == j) && (tmp2 == i))
+              continue;
+            middle += mas[tmp2][tmp1];
+            count++;
+          }
+        result[i][j] = middle / count;
+      }
+  }
 
   double** res;
   res = ImageSmoothing(mas, n, m);
-  int rank;
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
   if (rank == 0) {
     for (int i = 0; i < n; i++)
       for (int j = 0; j < m; j++)

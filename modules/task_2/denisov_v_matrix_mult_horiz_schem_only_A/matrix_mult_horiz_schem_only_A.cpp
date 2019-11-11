@@ -32,10 +32,10 @@ std::vector<int> getMatrixMultSeq(std::vector<int> matrixA, std::vector<int> mat
 
     std::vector<int> matrixResult(sizeVector);
 
-    for (auto i = 0; i < sizeSide; ++i) {
-        for (auto j = 0; j < sizeSide; ++j) {
+    for (auto i = 0; i < sizeSide; i++) {
+        for (auto j = 0; j < sizeSide; j++) {
             matrixResult[i * sizeSide + j] = 0;
-            for (auto k = 0; k < sizeSide; ++k) {
+            for (auto k = 0; k < sizeSide; k++) {
                 matrixResult[i * sizeSide + j] += matrixA[i * sizeSide + k] * matrixB[k * sizeSide + j];
             }
         }
@@ -61,10 +61,15 @@ std::vector<int> getMatrixMultPar(std::vector<int> matrixA, std::vector<int> mat
     int remainder = sizeSide % size;
 
     std::vector<int> vectorLocal(delta * sizeSide);
-    std::vector<int> resultGlobal(sizeVector);
+    std::vector<int> resultGlobal;
+    if (rank == 0) {
+        resultGlobal.resize(sizeVector);
+    }
 
     if (rank == 0) {
-        vectorLocal.resize(sizeSide * (delta + remainder));
+        if (remainder != 0) {
+            vectorLocal.resize(sizeSide * delta + remainder * sizeSide);
+        }
         if (delta != 0) {
             for (int proc = 1; proc < size; proc++) {
                 MPI_Send(&matrixA[0] + proc * delta * sizeSide + remainder * sizeSide,
@@ -74,8 +79,14 @@ std::vector<int> getMatrixMultPar(std::vector<int> matrixA, std::vector<int> mat
     }
 
     if (rank == 0) {
-        for (int i = 0; i < sizeSide * (delta + remainder); i++) {
-            vectorLocal[i] = matrixA[i];
+        if (remainder != 0) {
+            for (int i = 0; i < sizeSide * delta + sizeSide * remainder; i++) {
+                vectorLocal[i] = matrixA[i];
+            }
+        } else {
+            for (int i = 0; i < sizeSide * delta; i++) {
+                vectorLocal[i] = matrixA[i];
+            }
         }
     } else {
         MPI_Status status;
@@ -87,22 +98,24 @@ std::vector<int> getMatrixMultPar(std::vector<int> matrixA, std::vector<int> mat
     std::vector<int> resultLocal(sizeSide * delta);
 
     if (rank == 0) {
-        resultLocal.resize(sizeSide * (delta + remainder));
+        if (remainder != 0) {
+            resultLocal.resize(sizeSide * delta + sizeSide * remainder);
+        }
 
-        for (auto i = 0; i < delta + remainder; ++i) {
-            for (auto j = 0; j < sizeSide; ++j) {
+        for (auto i = 0; i < delta + remainder; i++) {
+            for (auto j = 0; j < sizeSide; j++) {
                 resultLocal[i * sizeSide + j] = 0;
-                for (auto k = 0; k < sizeSide; ++k) {
+                for (auto k = 0; k < sizeSide; k++) {
                     resultLocal[i * sizeSide + j] += vectorLocal[i * sizeSide + k] * matrixB[k * sizeSide + j];
                 }
             }
         }
 
     } else {
-        for (auto i = 0; i < delta; ++i) {
-            for (auto j = 0; j < sizeSide; ++j) {
+        for (auto i = 0; i < delta; i++) {
+            for (auto j = 0; j < sizeSide; j++) {
                 resultLocal[i * sizeSide + j] = 0;
-                for (auto k = 0; k < sizeSide; ++k) {
+                for (auto k = 0; k < sizeSide; k++) {
                     resultLocal[i * sizeSide + j] += vectorLocal[i * sizeSide + k] * matrixB[k * sizeSide + j];
                 }
             }
@@ -119,8 +132,14 @@ std::vector<int> getMatrixMultPar(std::vector<int> matrixA, std::vector<int> mat
                     delta * sizeSide, MPI_INT, proc, 2, MPI_COMM_WORLD, &status);
             }
         }
-        for (int i = 0; i < sizeSide * (delta + remainder); i++) {
-            resultGlobal[i] = resultLocal[i];
+        if (remainder != 0) {
+            for (int i = 0; i < sizeSide * (delta + remainder); i++) {
+                resultGlobal[i] = resultLocal[i];
+            }
+        } else {
+            for (int i = 0; i < sizeSide * delta; i++) {
+                resultGlobal[i] = resultLocal[i];
+            }
         }
     } else {
         if (delta != 0) {

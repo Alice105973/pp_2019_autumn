@@ -44,10 +44,17 @@ double GetTrapezIntegrParallel(double l, double r, int n, const std::function<do
 }
 
 double GetTrapezIntegrSequential(double l, double r, int n, const std::function<double(double)>& f) {
-    double step = (r - l) / static_cast<double>(n);
-    double integral = f(l) / 2 + f(r) / 2;
-    for (double i = l + step; i < r; i += step)
-        integral += f(i);
-    integral *= step;
+    double left = l;
+    double integral = 0;
+    for (int i = 0; i < n; i++) {
+        if (std::abs(left - l) < 1e-9)
+            integral += f(left) / 2;
+        else
+            integral += f(left);
+        left += (r - l) / static_cast<double>(n);
+    }
+    if (std::abs(left - r) < 1e-9)
+        integral += f(left) / 2;
+    integral *= ((r - l) / static_cast<double>(n));
     return integral;
 }
