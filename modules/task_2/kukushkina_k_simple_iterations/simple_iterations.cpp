@@ -1,6 +1,7 @@
 // Copyright 2019 Kukushkina Ksenia
 #include "../../../modules/task_2/kukushkina_k_simple_iterations/simple_iterations.h"
 #include <mpi.h>
+#include <vector>
 #include <ctime>
 #include <random>
 
@@ -31,18 +32,19 @@ double preprocess(std::vector<double>& A, std::vector<double>& b) {  // returns 
     MPI_Recv(&start, 1, MPI_INT, 0, 5, MPI_COMM_WORLD, &stat);
     MPI_Recv(&end, 1, MPI_INT, 0, 6, MPI_COMM_WORLD, &stat);
   }
-  for (start; start < end; start++) {
-    if (A[start * n + start] == 0)
+  for (int j = start; j < end; j++) {
+    if (A[j * n + j] == 0)
       throw "Zero element";
-    b[start] /= A[start * n + start];  // division by main diag element
-    for (int i = start * n; i < (start + 1) * n; i++)
-      if (i == start * (n + 1))
+    b[j] /= A[j * n + j];  // division by main diag element
+    for (int i = j * n; i < (j + 1) * n; i++)
+      if (i == j * (n + 1))
+      {
         A[i] = 0;  // main diag element
-      else {
-        A[i] /= A[start * n + start];
+      } else {
+        A[i] /= A[j * n + j];
         A[i] = - A[i];
-        if (abs(A[i]) > norm)
-          norm = abs(A[i]);
+        if (std::abs(A[i]) > norm)
+          norm = std::abs(A[i]);
         if (A[i] >= 1 || A[i] <= -1)  // no diag prevalence
           throw "No convergence";
       }
@@ -77,9 +79,9 @@ std::vector<double> GenerateVector(int n) {
     MPI_Recv(&start, 1, MPI_INT, 0, 3, MPI_COMM_WORLD, &stat);
     MPI_Recv(&end, 1, MPI_INT, 0, 4, MPI_COMM_WORLD, &stat);
   }
-  for (start; start < end; start++) {
+  for (int i = start; i < end; i++) {
     gen.seed(static_cast<int>(time(0)) + ++offset);
-    A[start] = gen() % 100;
+    A[i] = gen() % 100;
   }
   MPI_Barrier(MPI_COMM_WORLD);
   return A;
@@ -125,12 +127,11 @@ std::vector<double> SimpleIterations(std::vector<double>& A, std::vector<double>
     MPI_Recv(&start, 1, MPI_INT, 0, 7, MPI_COMM_WORLD, &stat);
     MPI_Recv(&end, 1, MPI_INT, 0, 8, MPI_COMM_WORLD, &stat);
   }
-
   do {
     for (int i = start; i < end; i++)
       xold[i] = xnew[i];  // xold refreshing
     MPI_Barrier(MPI_COMM_WORLD);
-    for (int i = start; i < end; i++) {  // strings 
+    for (int i = start; i < end; i++) {  // strings
       xnew[i] = b[i];
       for (int j = 0; j < n; j++)  // columns
         xnew[i] += A[n * i + j] * xold[j];  // i-str * j-col
