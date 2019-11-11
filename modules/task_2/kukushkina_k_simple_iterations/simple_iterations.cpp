@@ -83,7 +83,7 @@ std::vector<double> Simple_Iterations_MPI(std::vector<double> A, std::vector<dou
   }
   std::vector<double> lb(countsvec[rank]);  // local part of b
   std::vector<double> lA(countsvec[rank] * n);  // local part of A
-  std::vector<double> xnew(countsvec[rank]);  // local part of xnew 
+  std::vector<double> xnew(countsvec[rank]);  // local part of xnew
   // there's no global one, theese parts gathering into xold
 
   MPI_Scatterv(&b[0], countsvec, displsvec, MPI_DOUBLE, &lb[0], countsvec[rank], MPI_DOUBLE, 0, MPI_COMM_WORLD);
@@ -125,7 +125,7 @@ std::vector<double> Simple_Iterations_MPI(std::vector<double> A, std::vector<dou
     }
     MPI_Barrier(MPI_COMM_WORLD);
     MPI_Gatherv(&xnew, countsvec[rank], MPI_DOUBLE, &xold, countsvec, displsvec, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-	// refreshing xold
+    // refreshing xold
     MPI_Bcast(&xold, n, MPI_DOUBLE, 0, MPI_COMM_WORLD);
     MPI_Allreduce(&norm, &norm, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
     MPI_Barrier(MPI_COMM_WORLD);
