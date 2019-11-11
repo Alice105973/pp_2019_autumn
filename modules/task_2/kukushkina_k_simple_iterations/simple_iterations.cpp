@@ -64,8 +64,6 @@ std::vector<double> Simple_Iterations_MPI(std::vector<double> A, std::vector<dou
   if (n < size || size == 1) {
     return Simple_Iterations(A, b, precision);
   }
-
-  std::cout << "THIS IS PARALLEL" << std::endl;
   MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
   std::vector<double> xold(n);
   int len = n / size;
