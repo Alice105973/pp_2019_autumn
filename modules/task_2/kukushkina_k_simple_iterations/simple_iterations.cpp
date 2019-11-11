@@ -55,9 +55,9 @@ std::vector<double> GenerateVector(int n) {
   if (n <= 0)
     throw "Wrong size";
   std::vector<double> A(n);
-  if (n > A.max_size())
+  if (n > static_cast<int>(A.max_size()))
     throw "Overflow";
-  std::mt19937 gen(time(0));
+  std::mt19937 gen(static_cast<int>(time(0)));
   int rank, size, start, end;
   MPI_Status stat;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
