@@ -61,7 +61,7 @@ std::vector<double> Simple_Iterations_MPI(std::vector<double> A, std::vector<dou
   int size, rank;
   MPI_Comm_size(MPI_COMM_WORLD, &size);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  if (n < size)
+  if (size == 1)
     return Simple_Iterations(A, b, precision);
   MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
   std::vector<double> xold(n);
@@ -86,11 +86,11 @@ std::vector<double> Simple_Iterations_MPI(std::vector<double> A, std::vector<dou
   MPI_Scatterv(&b[0], countsvec, displsvec, MPI_DOUBLE, &lb[0], countsvec[rank], MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Scatterv(&A[0], countsmat, displsmat, MPI_DOUBLE, &lA[0], countsmat[rank], MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
-  double diag, norm, lnorm = 0;
+  double diag, norm, lnorm = 0, lflag = 1, flag;
   for (int i = 0; i < countsvec[rank]; i++) {  // preprocess: rows
     diag = lA[displsvec[rank] + i * n + i];  // main diag element
     if (diag == 0)
-      throw "Zero diag element";
+      lflag = 0;
     lb[i] /= diag;
     for (int j = 0; j < n; j++) {  // cols
       if (j == displsvec[rank] + i * n + i)
@@ -101,6 +101,11 @@ std::vector<double> Simple_Iterations_MPI(std::vector<double> A, std::vector<dou
         lnorm = std::abs(lA[j]);
     }
   }
+
+  MPI_Allreduce(&lflag, &flag, 1, MPI_DOUBLE, MPI_PROD, MPI_COMM_WORLD);
+  if (flag == 0)
+    throw "Zero element";
+
   MPI_Allreduce(&lnorm, &norm, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
   if (norm >= 1)
     throw "No diagonal prevalence";
@@ -108,6 +113,7 @@ std::vector<double> Simple_Iterations_MPI(std::vector<double> A, std::vector<dou
   MPI_Gatherv(&lb, countsvec[rank], MPI_DOUBLE, &xold, countsvec, displsvec, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   // gathering xold = modified b
   MPI_Bcast(&xold, n, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  std::cout << rank << " BEFORECYCLE\n";
   do {
     lnorm = 0;
     for (int i = 0; i < countsvec[rank]; i++) {
