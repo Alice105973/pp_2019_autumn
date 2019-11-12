@@ -101,16 +101,12 @@ std::vector<double> Simple_Iterations_MPI(std::vector<double> A, std::vector<dou
         lnorm = std::abs(lA[j]);
     }
   }
-  //MPI_Barrier(MPI_COMM_WORLD);
   MPI_Allreduce(&lnorm, &norm, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
-  //MPI_Barrier(MPI_COMM_WORLD);
   if (norm >= 1)
     throw "No diagonal prevalence";
 
-  //MPI_Barrier(MPI_COMM_WORLD);
   MPI_Gatherv(&lb, countsvec[rank], MPI_DOUBLE, &xold, countsvec, displsvec, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   // gathering xold = modified b
-  //MPI_Barrier(MPI_COMM_WORLD);
   MPI_Bcast(&xold, n, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   do {
     lnorm = 0;
@@ -121,12 +117,10 @@ std::vector<double> Simple_Iterations_MPI(std::vector<double> A, std::vector<dou
       if (std::abs(xnew[i] - xold[i]) > lnorm)
         lnorm = std::abs(xnew[i] - xold[i]);
     }
-    //MPI_Barrier(MPI_COMM_WORLD);
     MPI_Gatherv(&xnew, countsvec[rank], MPI_DOUBLE, &xold, countsvec, displsvec, MPI_DOUBLE, 0, MPI_COMM_WORLD);
     // refreshing xold
     MPI_Bcast(&xold, n, MPI_DOUBLE, 0, MPI_COMM_WORLD);
     MPI_Allreduce(&lnorm, &norm, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
-    //MPI_Barrier(MPI_COMM_WORLD);
   } while (norm > precision);
   return xold;
 }
