@@ -64,6 +64,15 @@ TEST(Simple_Iterations, non_parallel_2) {
   ASSERT_NEAR(Norm(x), Norm(tmp), 1e-7);
 }
 
+TEST(Simple_Iterations, non_parallel_3) {
+  std::vector<double> A{ 4, 1, 1, 1, 1, 4, 1, 1, 1, 1, 4, 1, 1, 1, 1, 4 };
+  std::vector<double> b{ 10, 13, 16, 10 };
+  std::vector<double> x(4);
+  std::vector<double> tmp{ 1, 2, 3, 1 };
+  x = Simple_Iterations(A, b, 1e-7);
+  ASSERT_NEAR(Norm(x), Norm(tmp), 1e-7);
+}
+
 TEST(Simple_Iterations, parallel_1) {
   std::vector<double> A{ 10, 1, 1, 2, 10, 1, 2, 2, 10 };
   std::vector<double> b{ 12, 13, 14 };
@@ -78,6 +87,15 @@ TEST(Simple_Iterations, parallel_2) {
   std::vector<double> b{ 10, 11, 47 };
   std::vector<double> x(3);
   std::vector<double> tmp{ 2, 1, 3 };
+  x = Simple_Iterations_MPI(A, b, 1e-7);
+  ASSERT_NEAR(Norm(x), Norm(tmp), 1e-7);
+}
+
+TEST(Simple_Iterations, parallel_3) {
+  std::vector<double> A{ 4, 1, 1, 1, 1, 4, 1, 1, 1, 1, 4, 1, 1, 1, 1, 4 };
+  std::vector<double> b{ 10, 13, 16, 10 };
+  std::vector<double> x(4);
+  std::vector<double> tmp{ 1, 2, 3, 1 };
   x = Simple_Iterations_MPI(A, b, 1e-7);
   ASSERT_NEAR(Norm(x), Norm(tmp), 1e-7);
 }
