@@ -93,15 +93,14 @@ std::vector<double> Simple_Iterations_MPI(std::vector<double> A, std::vector<dou
       lflag = 0;
     lb[i] /= diag;
     for (int j = 0; j < n; j++) {  // cols
-      if (j == displsvec[rank] + i * n + i)
-        lA[j] = 0;
+      if (j == displsvec[rank] + i)
+        lA[n * i + j] = 0;
       else
-        lA[j] /= diag;
-      if (std::abs(lA[j]) > lnorm)
-        lnorm = std::abs(lA[j]);
+        lA[n * i + j] /= diag;
+      if (std::abs(lA[n * i + j]) > lnorm)
+        lnorm = std::abs(lA[n * i + j]);
     }
   }
-
   MPI_Allreduce(&lflag, &flag, 1, MPI_DOUBLE, MPI_PROD, MPI_COMM_WORLD);
   if (flag == 0)
     throw "Zero element";
@@ -109,19 +108,22 @@ std::vector<double> Simple_Iterations_MPI(std::vector<double> A, std::vector<dou
   MPI_Allreduce(&lnorm, &norm, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
   if (norm >= 1)
     throw "No diagonal prevalence";
-
+  MPI_Barrier(MPI_COMM_WORLD);
+  //RIGHT HERE I NEED TO GATHER XOLD FROM LB AND MAKE IT USABLE FOR EVERY PROCESS
   MPI_Gatherv(&lb, countsvec[rank], MPI_DOUBLE, &xold, countsvec, displsvec, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-  // gathering xold = modified b
   MPI_Bcast(&xold, n, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-  std::cout << rank << " BEFORECYCLE\n";
+  std::cout << rank << xold[0] << " " << xold[1] << " " << xold[2] << std::endl;
   do {
     lnorm = 0;
-    for (int i = 0; i < countsvec[rank]; i++) {
-      xnew[i] = b[i];
-      for (int j = 0; j < n; j++)
+    std::cout << rank << ": lb - " << lb.size() << " lA - " << lA.size() << " xnew - " << xnew.size() << " xold - " << xold.size() << std::endl;
+    for (int i = 0; i < lb.size(); i++) {
+      xnew[i] = lb[i];
+      for (int j = 0; j < n; j++) {
         xnew[i] -= lA[i * n + j] * xold[j];
-      if (std::abs(xnew[i] - xold[i]) > lnorm)
-        lnorm = std::abs(xnew[i] - xold[i]);
+      }
+      if (std::abs(xnew[i] - xold[displsvec[rank] + i]) > lnorm) {
+        lnorm = std::abs(xnew[i] - xold[displsvec[rank] + i]);
+      }
     }
     MPI_Gatherv(&xnew, countsvec[rank], MPI_DOUBLE, &xold, countsvec, displsvec, MPI_DOUBLE, 0, MPI_COMM_WORLD);
     // refreshing xold
