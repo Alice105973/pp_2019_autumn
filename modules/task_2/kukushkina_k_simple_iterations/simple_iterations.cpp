@@ -109,28 +109,29 @@ std::vector<double> Simple_Iterations_MPI(std::vector<double> A, std::vector<dou
   if (norm >= 1)
     throw "No diagonal prevalence";
   MPI_Barrier(MPI_COMM_WORLD);
-  // RIGHT HERE I NEED TO GATHER XOLD FROM LB AND MAKE IT USABLE FOR EVERY PROCESS
-  MPI_Gatherv(&lb, countsvec[rank], MPI_DOUBLE, &xold, countsvec, displsvec, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  std::cout << rank << std::endl;
+
+  MPI_Gatherv(&lb[0], countsvec[rank], MPI_DOUBLE, &xold[0], countsvec, displsvec, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Bcast(&xold, n, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-  std::cout << rank << xold[0] << " " << xold[1] << " " << xold[2] << std::endl;
   do {
     lnorm = 0;
-    std::cout << rank << ": lb - " << lb.size() << " lA - " << lA.size() << " xnew - "
-      << xnew.size() << " xold - " << xold.size() << std::endl;
-    for (int i = 0; i < lb.size(); i++) {
+    std::cout << rank << ": lb - " << lb.size() << " lA - " << lA.size()
+      << " xnew - " << xnew.size() << " xold - " << xold.size() << std::endl;
+    for (int i = 0; i < countsvec[rank]; i++) {  // cols
       xnew[i] = lb[i];
       for (int j = 0; j < n; j++) {
         xnew[i] -= lA[i * n + j] * xold[j];
+        std::cout << rank << ": " << i << " " << j << std::endl;
       }
       if (std::abs(xnew[i] - xold[displsvec[rank] + i]) > lnorm) {
         lnorm = std::abs(xnew[i] - xold[displsvec[rank] + i]);
       }
     }
-    MPI_Gatherv(&xnew, countsvec[rank], MPI_DOUBLE, &xold, countsvec, displsvec, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    MPI_Gatherv(&xnew[0], countsvec[rank], MPI_DOUBLE, &xold[0], countsvec, displsvec, MPI_DOUBLE, 0, MPI_COMM_WORLD);
     // refreshing xold
-    MPI_Bcast(&xold, n, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    MPI_Bcast(&xold[0], n, MPI_DOUBLE, 0, MPI_COMM_WORLD);
     MPI_Allreduce(&lnorm, &norm, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
   } while (norm > precision);
+  MPI_Barrier(MPI_COMM_WORLD);
   return xold;
 }
-
