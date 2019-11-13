@@ -64,7 +64,6 @@ std::vector<double> Simple_Iterations_MPI(std::vector<double> A, std::vector<dou
   if (n < size)
     return Simple_Iterations(A, b, precision);
   std::vector<int> countsvec(size), countsmat(size), displsvec(size), displsmat(size);
-  MPI_Status stat;
   int len = n / size;
   int rem = n % size;
   countsvec[0] = len + rem;
