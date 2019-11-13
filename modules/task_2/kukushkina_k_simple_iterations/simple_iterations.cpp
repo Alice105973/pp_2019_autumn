@@ -61,13 +61,13 @@ std::vector<double> Simple_Iterations_MPI(std::vector<double> A, std::vector<dou
   int size, rank;
   MPI_Comm_size(MPI_COMM_WORLD, &size);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  if (size == 1)
+  if (n < size)
     return Simple_Iterations(A, b, precision);
   MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
   std::vector<double> xold(n);
   int len = n / size;
   int rem = n % size;
-  int* countsvec = new int(size), *displsvec = new int(size), *countsmat = new int(size), *displsmat = new int(size);
+  int* countsvec = new int(size), * displsvec = new int(size), * countsmat = new int(size), * displsmat = new int(size);
   countsvec[0] = len + rem;
   countsmat[0] = (len + rem) * n;
   displsvec[0] = 0;
