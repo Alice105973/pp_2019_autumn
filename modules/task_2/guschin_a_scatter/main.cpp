@@ -5,95 +5,221 @@
 #include <vector>
 #include "../../../modules/task_2/guschin_a_scatter/scatter.h"
 
-TEST(scatter, throw_when_different_size) {
+TEST(scatter, throw_when_negative_root) {
+  int root = -1;
   int rank, size;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
   std::vector<int> p(1);
   int dest[3];
-  EXPECT_EQ(MPI_Scatter_custom(&p[0], 1, MPI_INT, &dest[0], 99, MPI_INT, 0, MPI_COMM_WORLD),
+  EXPECT_EQ(MPI_Scatter_bin(&p[0], 1, MPI_INT, &dest[0], 1, MPI_INT, root,
+                            MPI_COMM_WORLD),
             MPI_ERR_COUNT);
 }
 
-TEST(scatter, can_scatter_and_gather_double) {
+TEST(scatter, throw_when_different_size) {
+  int root = 0;
   int rank, size;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
-  std::vector<double> p(3 * size);
-  std::vector<double> d(3 * size);
-  double dest[3];
-  if (rank == 0) {
-    for (int i = 0; i < 3 * size; ++i) p[i] = i + 1.0/i;
-  }
-  MPI_Scatter_custom(&p[0], 3, MPI_DOUBLE, &dest[0], 3, MPI_DOUBLE, 0,
-                     MPI_COMM_WORLD);
-  MPI_Gather(&dest[0], 3, MPI_DOUBLE, &d[0], 3, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  std::vector<int> p(1);
+  int dest[3];
+  EXPECT_EQ(MPI_Scatter_bin(&p[0], 1, MPI_INT, &dest[0], 99, MPI_INT, root,
+                            MPI_COMM_WORLD),
+            MPI_ERR_COUNT);
+}
 
-  if (rank == 0) {
+TEST(scatter, can_compare_bin_scatter_with_MPI_Scatter) {
+  int mes_size = 3;
+  int root = 0;
+  int rank, size;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  MPI_Comm_size(MPI_COMM_WORLD, &size);
+  std::vector<int> p(mes_size * size);
+  std::vector<int> d1(mes_size * size);
+  std::vector<int> d2(mes_size * size);
+  std::vector<int> dest(mes_size);
+  if (rank == root) {
+    for (int i = 0; i < mes_size * size; ++i) p[i] = i;
+  }
+  MPI_Scatter_bin(&p[0], mes_size, MPI_INT, &dest[0], mes_size, MPI_INT, root,
+                  MPI_COMM_WORLD);
+  MPI_Gather(&dest[0], mes_size, MPI_INT, &d1[0], mes_size, MPI_INT, root,
+             MPI_COMM_WORLD);
+
+  MPI_Scatter(&p[0], mes_size, MPI_INT, &dest[0], mes_size, MPI_INT, root,
+              MPI_COMM_WORLD);
+  MPI_Gather(&dest[0], mes_size, MPI_INT, &d2[0], mes_size, MPI_INT, root,
+             MPI_COMM_WORLD);
+
+  if (rank == root) {
+    EXPECT_EQ(d1, d2);
+  }
+}
+
+TEST(scatter, can_scatter_and_gather_double) {
+  int root = 0;
+  int mes_size = 3;
+  int rank, size;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  MPI_Comm_size(MPI_COMM_WORLD, &size);
+  std::vector<double> p(mes_size * size);
+  std::vector<double> d(mes_size * size);
+  std::vector<double> dest(mes_size);
+  if (rank == root) {
+    for (int i = 0; i < mes_size * size; ++i) p[i] = i + 1.0 / (i + 1);
+  }
+  MPI_Scatter_custom(&p[0], mes_size, MPI_DOUBLE, &dest[0], mes_size,
+                     MPI_DOUBLE, root, MPI_COMM_WORLD);
+  MPI_Gather(&dest[0], mes_size, MPI_DOUBLE, &d[0], mes_size, MPI_DOUBLE, root,
+             MPI_COMM_WORLD);
+
+  if (rank == root) {
     EXPECT_EQ(p, d);
   }
 }
 
 TEST(scatter, can_scatter_and_gather_int) {
+  int mes_size = 3;
+  int root = 0;
   int rank, size;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
-  std::vector<int> p(3 * size);
-  std::vector<int> d(3 * size);
-  int dest[3];
-  if (rank == 0) {
-    for (int i = 0; i < 3 * size; ++i) p[i] = i;
+  std::vector<int> p(mes_size * size);
+  std::vector<int> d(mes_size * size);
+  std::vector<int> dest(mes_size);
+  if (rank == root) {
+    for (int i = 0; i < mes_size * size; ++i) p[i] = i;
   }
-  MPI_Scatter_custom(&p[0], 3, MPI_INT, &dest[0], 3, MPI_INT, 0,
-                     MPI_COMM_WORLD);
-  MPI_Gather(&dest[0], 3, MPI_INT, &d[0], 3, MPI_INT, 0, MPI_COMM_WORLD);
+  MPI_Scatter_custom(&p[0], mes_size, MPI_INT, &dest[0], mes_size, MPI_INT,
+                     root, MPI_COMM_WORLD);
+  MPI_Gather(&dest[0], mes_size, MPI_INT, &d[0], mes_size, MPI_INT, root,
+             MPI_COMM_WORLD);
 
-  if (rank == 0) {
+  if (rank == root) {
     EXPECT_EQ(p, d);
-  }
-}
-
-TEST(scatter, can_compare_custom_scatter_with_MPI_Scatter) {
-  int rank, size;
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  MPI_Comm_size(MPI_COMM_WORLD, &size);
-  std::vector<int> p(3 * size);
-  std::vector<int> d1(3 * size);
-  std::vector<int> d2(3 * size);
-  int dest[3];
-  if (rank == 0) {
-    for (int i = 0; i < 3 * size; ++i) p[i] = i;
-  }
-  MPI_Scatter_custom(&p[0], 3, MPI_INT, &dest[0], 3, MPI_INT, 0,
-                     MPI_COMM_WORLD);
-  MPI_Gather(&dest[0], 3, MPI_INT, &d1[0], 3, MPI_INT, 0, MPI_COMM_WORLD);
-
-  MPI_Scatter(&p[0], 3, MPI_INT, &dest[0], 3, MPI_INT, 0,
-                     MPI_COMM_WORLD);
-  MPI_Gather(&dest[0], 3, MPI_INT, &d2[0], 3, MPI_INT, 0, MPI_COMM_WORLD);
-
-  if (rank == 0) {
-    EXPECT_EQ(d1, d2);
   }
 }
 
 TEST(scatter, can_scatter_and_gather_float) {
+  int mes_size = 3;
+  int root = 0;
   int rank, size;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
-  std::vector<float> p(3 * size);
-  std::vector<float> d(3 * size);
-  float dest[3];
-  if (rank == 0) {
-    for (int i = 0; i < 3 * size; ++i) p[i] = i + 1.0 / i;
+  std::vector<float> p(mes_size * size);
+  std::vector<float> d(mes_size * size);
+  std::vector<float> dest(mes_size);
+  if (rank == root) {
+    for (int i = 0; i < mes_size * size; ++i) p[i] = i + 1.0 / (i + 1);
   }
-  MPI_Scatter_custom(&p[0], 3, MPI_FLOAT, &dest[0], 3, MPI_FLOAT, 0,
-                     MPI_COMM_WORLD);
-  MPI_Gather(&dest[0], 3, MPI_FLOAT, &d[0], 3, MPI_FLOAT, 0, MPI_COMM_WORLD);
+  MPI_Scatter_custom(&p[0], mes_size, MPI_FLOAT, &dest[0], mes_size, MPI_FLOAT,
+                     root, MPI_COMM_WORLD);
+  MPI_Gather(&dest[0], mes_size, MPI_FLOAT, &d[0], mes_size, MPI_FLOAT, root,
+             MPI_COMM_WORLD);
 
-  if (rank == 0) {
+  if (rank == root) {
     EXPECT_EQ(p, d);
   }
+}
+
+TEST(scatter, can_scatter_bin_and_gather_int) {
+  int mes_size = 3;
+  int root = 0;
+  int rank, size;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  MPI_Comm_size(MPI_COMM_WORLD, &size);
+  std::vector<int> p(mes_size * size);
+  std::vector<int> d(mes_size * size);
+  std::vector<int> dest(mes_size);
+  if (rank == root) {
+    for (int i = 0; i < mes_size * size; ++i) p[i] = i;
+  }
+  MPI_Scatter_bin(&p[0], mes_size, MPI_INT, &dest[0], mes_size, MPI_INT, root,
+                  MPI_COMM_WORLD);
+  MPI_Gather(&dest[0], mes_size, MPI_INT, &d[0], mes_size, MPI_INT, root,
+             MPI_COMM_WORLD);
+
+  if (rank == root) {
+    EXPECT_EQ(p, d);
+  }
+}
+
+TEST(scatter, can_scatter_bin_and_gather_double) {
+  int mes_size = 3;
+  int root = 0;
+  int rank, size;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  MPI_Comm_size(MPI_COMM_WORLD, &size);
+  std::vector<double> p(mes_size * size);
+  std::vector<double> d(mes_size * size);
+  std::vector<double> dest(mes_size);
+  if (rank == root) {
+    for (int i = 0; i < mes_size * size; ++i) p[i] = i + 1.0 / (i + 1);
+  }
+  MPI_Scatter_bin(&p[0], mes_size, MPI_DOUBLE, &dest[0], mes_size, MPI_DOUBLE,
+                  root, MPI_COMM_WORLD);
+  MPI_Gather(&dest[0], mes_size, MPI_DOUBLE, &d[0], mes_size, MPI_DOUBLE, root,
+             MPI_COMM_WORLD);
+
+  if (rank == root) {
+    EXPECT_EQ(p, d);
+  }
+}
+
+TEST(scatter, can_scatter_bin_and_gather_float) {
+  int mes_size = 3;
+  int root = 0;
+  int rank, size;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  MPI_Comm_size(MPI_COMM_WORLD, &size);
+  std::vector<float> p(mes_size * size);
+  std::vector<float> d(mes_size * size);
+  std::vector<float> dest(mes_size);
+  if (rank == root) {
+    for (int i = 0; i < mes_size * size; ++i) p[i] = i + 1.0 / (i + 1);
+  }
+  MPI_Scatter_bin(&p[0], mes_size, MPI_FLOAT, &dest[0], mes_size, MPI_FLOAT,
+                  root, MPI_COMM_WORLD);
+  MPI_Gather(&dest[0], mes_size, MPI_FLOAT, &d[0], mes_size, MPI_FLOAT, root,
+             MPI_COMM_WORLD);
+
+  if (rank == root) {
+    EXPECT_EQ(p, d);
+  }
+}
+
+TEST(scatter, time) {
+  int mes_size = 3;
+  int root = 0;
+  int rank, size;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  MPI_Comm_size(MPI_COMM_WORLD, &size);
+  std::vector<int> p(mes_size * size);
+  std::vector<int> dest(mes_size);
+  if (rank == root) {
+    for (int i = 0; i < mes_size * size; ++i) p[i] = i;
+  }
+  double time_f1, time_s1, time_f2, time_s2, time_f3, time_s3;
+  time_f1 = MPI_Wtime();
+  MPI_Scatter_custom(&p[0], mes_size, MPI_INT, &dest[0], mes_size, MPI_INT,
+                     root, MPI_COMM_WORLD);
+  time_s1 = MPI_Wtime();
+  if (rank == 0) std::cout << "custom time " << time_s1 - time_f1 << std::endl;
+
+  time_f2 = MPI_Wtime();
+  MPI_Scatter_bin(&p[0], mes_size, MPI_INT, &dest[0], mes_size, MPI_INT, root,
+                  MPI_COMM_WORLD);
+  time_s2 = MPI_Wtime();
+  if (rank == 0) std::cout << "bin time " << time_s2 - time_f2 << std::endl;
+
+  time_f3 = MPI_Wtime();
+  MPI_Scatter(&p[0], mes_size, MPI_INT, &dest[0], mes_size, MPI_INT, root,
+              MPI_COMM_WORLD);
+  time_s3 = MPI_Wtime();
+  if (rank == 0) std::cout << "standart time " << time_s3 - time_f3 << std::endl;
+
+  ASSERT_NO_THROW();
 }
 
 int main(int argc, char** argv) {

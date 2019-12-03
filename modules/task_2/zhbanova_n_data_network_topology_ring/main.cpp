@@ -61,21 +61,22 @@ TEST(data_network_topology_ring, sendFromFirstToLast) {   // all processes are i
 
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
+  if (size > 1) {
+    int rankTo = size - 1;
 
-  int rankTo = size - 1;
+    if (rank == rankFrom) {
+      vec = randomInputVector(VEC_SIZE);
+    }
 
-  if (rank == rankFrom) {
-    vec = randomInputVector(VEC_SIZE);
-  }
+    // execute
+    std::vector<int> resultVec = sendVector(rankFrom, rankTo, vec);
 
-  // execute
-  std::vector<int> resultVec = sendVector(rankFrom, rankTo, vec);
-
-  // check data
-  resultVec = transferDataToCheck(rank, rankFrom, rankTo, resultVec);
-  if (rank == rankFrom) {
-    for (unsigned int i = 0; i < resultVec.size(); i++) {
-      ASSERT_EQ(resultVec[i], vec[i]);
+    // check data
+    resultVec = transferDataToCheck(rank, rankFrom, rankTo, resultVec);
+    if (rank == rankFrom) {
+      for (unsigned int i = 0; i < resultVec.size(); i++) {
+        ASSERT_EQ(resultVec[i], vec[i]);
+      }
     }
   }
 }
@@ -88,21 +89,23 @@ TEST(data_network_topology_ring, sendVia0Proc) {   // all processes are involved
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-  int rankFrom = size / 2;
-  int rankTo = rankFrom - 1;
+  if (size > 1) {
+    int rankFrom = size / 2;
+    int rankTo = rankFrom - 1;
 
-  if (rank == rankFrom) {
-    vec = randomInputVector(VEC_SIZE);
-  }
+    if (rank == rankFrom) {
+      vec = randomInputVector(VEC_SIZE);
+    }
 
-  // execute
-  std::vector<int> resultVec = sendVector(rankFrom, rankTo, vec);
+    // execute
+    std::vector<int> resultVec = sendVector(rankFrom, rankTo, vec);
 
-  // check data
-  resultVec = transferDataToCheck(rank, rankFrom, rankTo, resultVec);
-  if (rank == rankFrom) {
-    for (unsigned int i = 0; i < resultVec.size(); i++) {
-      ASSERT_EQ(resultVec[i], vec[i]);
+    // check data
+    resultVec = transferDataToCheck(rank, rankFrom, rankTo, resultVec);
+    if (rank == rankFrom) {
+      for (unsigned int i = 0; i < resultVec.size(); i++) {
+        ASSERT_EQ(resultVec[i], vec[i]);
+      }
     }
   }
 }
@@ -114,22 +117,23 @@ TEST(data_network_topology_ring, sendViaNotAllProcFromLessTo) {
 
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
+  if (size > 1) {
+    int rankFrom = 0;
+    int rankTo = size / 2;
 
-  int rankFrom = 0;
-  int rankTo = size/2;
+    if (rank == rankFrom) {
+      vec = randomInputVector(VEC_SIZE);
+    }
 
-  if (rank == rankFrom) {
-    vec = randomInputVector(VEC_SIZE);
-  }
+    // execute
+    std::vector<int> resultVec = sendVector(rankFrom, rankTo, vec);
 
-  // execute
-  std::vector<int> resultVec = sendVector(rankFrom, rankTo, vec);
-
-  // check data
-  resultVec = transferDataToCheck(rank, rankFrom, rankTo, resultVec);
-  if (rank == rankFrom) {
-    for (unsigned int i = 0; i < resultVec.size(); i++) {
-      ASSERT_EQ(resultVec[i], vec[i]);
+    // check data
+    resultVec = transferDataToCheck(rank, rankFrom, rankTo, resultVec);
+    if (rank == rankFrom) {
+      for (unsigned int i = 0; i < resultVec.size(); i++) {
+        ASSERT_EQ(resultVec[i], vec[i]);
+      }
     }
   }
 }
@@ -140,21 +144,24 @@ TEST(data_network_topology_ring, sendViaNotAllProcFromMoreTo) {
   int rank, size;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
-  int rankFrom = size - 1;
-  int rankTo = 0;
 
-  if (rank == rankFrom) {
-    vec = randomInputVector(VEC_SIZE);
-  }
+  if (size > 1) {
+    int rankFrom = size - 1;
+    int rankTo = 0;
 
-  // execute
-  std::vector<int> resultVec = sendVector(rankFrom, rankTo, vec);
+    if (rank == rankFrom) {
+      vec = randomInputVector(VEC_SIZE);
+    }
 
-  // check data
-  resultVec = transferDataToCheck(rank, rankFrom, rankTo, resultVec);
-  if (rank == rankFrom) {
-    for (unsigned int i = 0; i < resultVec.size(); i++) {
-      ASSERT_EQ(resultVec[i], vec[i]);
+    // execute
+    std::vector<int> resultVec = sendVector(rankFrom, rankTo, vec);
+
+    // check data
+    resultVec = transferDataToCheck(rank, rankFrom, rankTo, resultVec);
+    if (rank == rankFrom) {
+      for (unsigned int i = 0; i < resultVec.size(); i++) {
+        ASSERT_EQ(resultVec[i], vec[i]);
+      }
     }
   }
 }

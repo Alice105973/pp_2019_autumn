@@ -42,16 +42,19 @@ int Allreduce(void* sendbuf, void* recvbuf, int count, MPI_Datatype datatype,
             MPI_Recv(getbuf, count, datatype, proc, proc, comm, &status);
             for (int j = 0; j < count; ++j)
               static_cast<int*>(recvbuf)[j] += getbuf[j];
+            delete[] getbuf;
           } else if (datatype == MPI_FLOAT) {
             float* getbuf = new float[count];
             MPI_Recv(getbuf, count, datatype, proc, proc, comm, &status);
             for (int j = 0; j < count; ++j)
               static_cast<float*>(recvbuf)[j] += getbuf[j];
+            delete[] getbuf;
           } else if (datatype == MPI_DOUBLE) {
             double* getbuf = new double[count];
             MPI_Recv(getbuf, count, datatype, proc, proc, comm, &status);
             for (int j = 0; j < count; ++j)
               static_cast<double*>(recvbuf)[j] += getbuf[j];
+            delete[] getbuf;
           }
         }
       }

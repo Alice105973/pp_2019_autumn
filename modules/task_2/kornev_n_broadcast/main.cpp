@@ -7,7 +7,7 @@
 #include "./broadcast.h"
 
 TEST(broadcast, int) {
-  int rank, size, root = 2, n = 10;
+  int rank, size, root = 0, n = 10;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
   int* a = new int[n];
@@ -29,7 +29,7 @@ TEST(broadcast, int) {
 }
 
 TEST(broadcast, float) {
-  int rank, size, root = 2, n = 10;
+  int rank, size, root = 0, n = 10;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
   float* a = new float[n];
@@ -51,7 +51,7 @@ TEST(broadcast, float) {
 }
 
 TEST(broadcast, double) {
-  int rank, size, root = 2, n = 10;
+  int rank, size, root = 0, n = 10;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
   double* a = new double[n];
@@ -73,7 +73,7 @@ TEST(broadcast, double) {
 }
 
 TEST(broadcast, test4) {
-  int rank, size, root = 2, n = 10;
+  int rank, size, root = 0, n = 10;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
   int* a = new int[n];
@@ -87,18 +87,18 @@ TEST(broadcast, test4) {
 
   broadcast(a, n, MPI_INT, root, MPI_COMM_WORLD);
 
-  if (rank == 1) {
+  if (rank == 0) {
     for (int i = 0; i < n; i++)
       sum += a[i];
   }
 
-  if (rank == 1) {
+  if (rank == 0) {
     ASSERT_EQ(sum, 10);
   }
 }
 
 TEST(broadcast, test5) {
-  int rank, size, root = 2, n = 100;
+  int rank, size, root = 0, n = 100;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
   int* a = new int[n];

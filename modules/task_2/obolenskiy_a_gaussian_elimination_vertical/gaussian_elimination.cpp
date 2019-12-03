@@ -107,7 +107,6 @@ std::vector <double> solveParallel(const std::vector <double> &a, size_t rows, s
             for (size_t i = rows * (row / size); i < rows * (row / size + 1); ++i) {
                 pivotCol[index++] = v[i];
             }
-            assert(index == rows);
         }
         MPI_Bcast(pivotCol.data(), rows, MPI_DOUBLE, row % size, MPI_COMM_WORLD);
         double pivotRow = pivotCol[row];

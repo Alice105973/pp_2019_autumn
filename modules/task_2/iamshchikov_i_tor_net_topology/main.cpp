@@ -80,50 +80,67 @@ TEST(torus_network_topology, procnum_in_tor_top_is_equal_procnum_in_net_top) {
 }
 
 TEST(torus_network_topology, throw_when_send_from_proc_which_is_not_in_top) {
-    int procnum_in_base_comm, root;
-    std::vector<int> dims(2), data;
+    int procnum_in_base_comm, root, size = 10;
+    std::vector<int> dims(2), data(size);
+    std::vector<int>* pdata = &data;
     MPI_Comm comm_cart = MPI_COMM_NULL, comm_base = MPI_COMM_WORLD;
     MPI_Comm_size(comm_base, &procnum_in_base_comm);
     MPI_Dims_create(procnum_in_base_comm, 2, dims.data());
     comm_cart = createTorusTopology(dims, comm_base);
     root = procnum_in_base_comm;
 
-    ASSERT_ANY_THROW(send(data, 1, MPI_INT, root, 0, dims, comm_cart));
+    ASSERT_ANY_THROW(send(pdata, 1, MPI_INT, root, 0, dims, comm_cart));
 }
 
 TEST(torus_network_topology, throw_when_send_to_proc_which_is_not_in_top) {
-    int procnum_in_base_comm, dest;
-    std::vector<int> dims(2), data;
+    int procnum_in_base_comm, dest, size = 10;
+    std::vector<int> dims(2), data(size);
+    std::vector<int>* pdata = &data;
     MPI_Comm comm_cart = MPI_COMM_NULL, comm_base = MPI_COMM_WORLD;
     MPI_Comm_size(comm_base, &procnum_in_base_comm);
     MPI_Dims_create(procnum_in_base_comm, 2, dims.data());
     comm_cart = createTorusTopology(dims, comm_base);
     dest = procnum_in_base_comm;
 
-    ASSERT_ANY_THROW(send(data, 1, MPI_INT, 0, dest, dims, comm_cart));
+    ASSERT_ANY_THROW(send(pdata, 1, MPI_INT, 0, dest, dims, comm_cart));
 }
 
 TEST(torus_network_topology, throw_when_try_send_in_null_comm) {
     MPI_Comm comm_cart = MPI_COMM_NULL;
-    std::vector<int> data, dims;
+    int size = 10;
+    std::vector<int> data(size), dims;
+    std::vector<int>* pdata = &data;
 
-    ASSERT_ANY_THROW(send(data, 1, MPI_INT, 0, 0, dims, comm_cart));
+    ASSERT_ANY_THROW(send(pdata, 1, MPI_INT, 0, 0, dims, comm_cart));
 }
 
-TEST(torus_network_topology, throw_when_send_to_proc_which_is_not_neighbour) {
-    int procnum_in_base_comm, rank, procnum;
+TEST(torus_network_topology, can_send) {
+    int procrank, procnum, root, dest, ndims = 2, size = 10;
+    size_t count = 6;
+    std::vector<int> data(size), dims(ndims);
+    std::vector<int>* pdata = &data;
     MPI_Comm_size(MPI_COMM_WORLD, &procnum);
+    if (procnum != 1) {
+        MPI_Dims_create(procnum, ndims, dims.data());
+        MPI_Comm comm_cart = createTorusTopology(dims, MPI_COMM_WORLD);
+        MPI_Comm_rank(comm_cart, &procrank);
+        root = 0; dest = procnum-1;
+        if (procrank == root) {
+            for (size_t i = 0; i < pdata->size(); ++i)
+                pdata->at(i) = i * i;
+        }
 
-    if (procnum > 3) {
-        std::vector<int> dims(2), data, neighbors_ranks;
-        MPI_Comm comm_cart = MPI_COMM_NULL, comm_base = MPI_COMM_WORLD;
-        MPI_Comm_size(comm_base, &procnum_in_base_comm);
-        MPI_Dims_create(procnum_in_base_comm, 2, dims.data());
-        comm_cart = createTorusTopology(dims, comm_base);
-        MPI_Comm_rank(comm_cart, &rank);
+        if (procrank == dest && dest != root) {
+            for (int i = 0; i < size; ++i)
+                ASSERT_EQ(0, pdata->at(i));
+        }
 
-        if (rank == 0) {
-            ASSERT_ANY_THROW(send(data, 1, MPI_INT, 0, procnum-1, dims, comm_cart));
+        send(pdata, count, MPI_INT, root, dest, dims, comm_cart);
+
+        if (procrank == dest) {
+            ASSERT_EQ(count, pdata->size());
+            for (size_t i = 0; i < count; ++i)
+                ASSERT_EQ(static_cast<int>(i*i), pdata->at(i));
         }
     }
 }

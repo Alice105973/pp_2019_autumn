@@ -1,6 +1,5 @@
 // Copyright 2019 Kornev Nikita
 
-#include <random>
 #include "../../../modules/task_2/kornev_n_broadcast/broadcast.h"
 
 void broadcast(void* buffer, int count, MPI_Datatype datatype, int root, MPI_Comm comm) {
