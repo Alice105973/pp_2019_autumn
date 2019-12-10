@@ -12,5 +12,6 @@ const int VMAX_MIXED = 2;
 std::vector<int> GetVector(int size, int mode);
 int SequentialMaxValue(std::vector<int> vec);
 int ParallelMaxValue(std::vector<int> vec);
+void segmentation(int size, int worldSize, int rank, int* segmentStart, int* segmentSize);
 
 #endif  // MODULES_TASK_1_OSTAPOVICH_D_MAX_ELEM_VECTOR_MAX_ELEM_VECTOR_H_

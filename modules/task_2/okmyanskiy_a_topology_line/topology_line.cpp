@@ -7,25 +7,9 @@ int getMessage(int ProcRank, int ProcNum, MPI_Comm MPI_COMM) {
         std::cout << "The program must run on more than one process\n";
         return -1;
     } else {
-        int message = -1;
-        int rank1 = ProcNum / 3;
-        int rank2 = ProcNum / 2;
-        if (rank1 == 0)
-            rank1++;
-        if (ProcRank == rank1) {
-            MPI_Send(&ProcRank, 1, MPI_INT, 0, 0, MPI_COMM);
-        }
-        if (ProcRank == rank2) {
-            MPI_Send(&ProcRank, 1, MPI_INT, 0, 0, MPI_COMM);
-        }
-        if (ProcRank == 0) {
-            int temp;
-            MPI_Status Status;
-            MPI_Recv(&temp, 1, MPI_INT, rank1, 0, MPI_COMM, &Status);
-            MPI_Recv(&message, 1, MPI_INT, rank2, 0, MPI_COMM, &Status);
-            message += temp;
-        }
-        return message;
+        int TotalSum = ProcRank;
+        MPI_Reduce(&ProcRank, &TotalSum, 1, MPI_INT, MPI_SUM, 0, MPI_COMM);
+        return TotalSum;
     }
 }
 MPI_Comm getLineComm(MPI_Comm oldComm, int ProcNum) {

@@ -12,22 +12,18 @@ TEST(MPI_Scatter, int_to_int) {
   MPI_Comm_size(MPI_COMM_WORLD, &size);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-  std::vector<int> buf(10);
-  std::vector<int> buf1(10);
-  std::vector<int> buf2(10);
+  std::vector<int> buf(20);
+  std::vector<int> buf1(20);
+  std::vector<int> buf2(20);
   std::vector<int> recv;
   std::vector<int> scatter;
-
   for (int& i : buf) {
     i = ++k;
   }
-
   recv.resize(buf.size() / size);
   scatter.resize(recv.size());
-
-  Scatter(buf.data(), buf.size() / size, MPI_INT, recv.data(), buf.size() / size, MPI_INT, root, MPI_COMM_WORLD);
+  FasterScatter(buf.data(), buf.size() / size, MPI_INT, recv.data(), buf.size() / size, MPI_INT, root, MPI_COMM_WORLD);
   MPI_Scatter(buf.data(), buf.size() / size, MPI_INT, scatter.data(), buf.size() / size, MPI_INT, root, MPI_COMM_WORLD);
-
   MPI_Gather(recv.data(), recv.size(), MPI_INT,
     buf1.data(), recv.size(), MPI_INT, root, MPI_COMM_WORLD);
   MPI_Gather(scatter.data(), scatter.size(), MPI_INT,
@@ -37,6 +33,22 @@ TEST(MPI_Scatter, int_to_int) {
     ASSERT_EQ(buf1, buf2);
   }
 }
+
+TEST(MPI_Scatter, effectiv) {
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  std::vector<int> buf(100000);
+  int k = 0;
+  int max1, max2;
+  for (int& i : buf)
+    i = ++k;
+  max1 = MyTest(buf, FasterScatter);
+  max2 = MyTest(buf, MPI_Scatter);
+  if (rank == 0) {
+    ASSERT_TRUE(max1 == max2);
+  }
+}
+
 TEST(MPI_Scatter, double_to_float) {
   const int root = 0;
   int rank, size;
@@ -57,7 +69,7 @@ TEST(MPI_Scatter, double_to_float) {
   recv.resize((buf.size() / size)*(sizeof(double) / sizeof(float)));
   scatter.resize(recv.size());
 
-  Scatter(buf.data(), buf.size() / size, MPI_DOUBLE, recv.data(), recv.size(), MPI_FLOAT, root, MPI_COMM_WORLD);
+  FasterScatter(buf.data(), buf.size() / size, MPI_DOUBLE, recv.data(), recv.size(), MPI_FLOAT, root, MPI_COMM_WORLD);
   MPI_Scatter(buf.data(), buf.size() / size, MPI_DOUBLE, scatter.data(), recv.size(), MPI_FLOAT, root, MPI_COMM_WORLD);
 
   MPI_Gather(recv.data(), recv.size(), MPI_FLOAT,
@@ -77,9 +89,9 @@ TEST(MPI_Scatter, throw_when_error_count_and_root) {
   std::vector<int> recv;
   std::vector<int> scatter;
 
-  ASSERT_ANY_THROW(Scatter(buf.data(), buf.size() / 3, MPI_INT, recv.data(), buf.size() / 3,
+  ASSERT_ANY_THROW(FasterScatter(buf.data(), buf.size() / 3, MPI_INT, recv.data(), buf.size() / 3,
                     MPI_INT, root, MPI_COMM_WORLD));
-  ASSERT_ANY_THROW(Scatter(buf.data(), 0, MPI_INT, recv.data(), 0, MPI_INT, 0, MPI_COMM_WORLD));
+  ASSERT_ANY_THROW(FasterScatter(buf.data(), 0, MPI_INT, recv.data(), 0, MPI_INT, 0, MPI_COMM_WORLD));
 }
 TEST(MPI_Scatter, char_to_int) {
   const int root = 0;
@@ -88,9 +100,9 @@ TEST(MPI_Scatter, char_to_int) {
   MPI_Comm_size(MPI_COMM_WORLD, &size);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-  std::vector<char> buf(16);
-  std::vector<int> buf1(16 / 4);
-  std::vector<int> buf2(16 / 4);
+  std::vector<char> buf(4*size*size);
+  std::vector<int> buf1(4*size*size / 4);
+  std::vector<int> buf2(4*size*size / 4);
   std::vector<int> recv;
   std::vector<int> scatter;
 
@@ -101,7 +113,7 @@ TEST(MPI_Scatter, char_to_int) {
   recv.resize((buf.size() / size)/4);
   scatter.resize(recv.size());
 
-  Scatter(buf.data(), buf.size() / size, MPI_CHAR, recv.data(), recv.size(), MPI_INT, root, MPI_COMM_WORLD);
+  FasterScatter(buf.data(), buf.size() / size, MPI_CHAR, recv.data(), recv.size(), MPI_INT, root, MPI_COMM_WORLD);
   MPI_Scatter(buf.data(), buf.size() / size, MPI_CHAR, scatter.data(), recv.size(), MPI_INT, root, MPI_COMM_WORLD);
 
   MPI_Gather(recv.data(), recv.size(), MPI_INT,
@@ -132,7 +144,7 @@ TEST(MPI_Scatter, double_to_int) {
   recv.resize((buf.size() / size)*(sizeof(double) / sizeof(int)));
   scatter.resize(recv.size());
 
-  Scatter(buf.data(), buf.size() / size, MPI_DOUBLE, recv.data(), recv.size(), MPI_INT, root, MPI_COMM_WORLD);
+  FasterScatter(buf.data(), buf.size() / size, MPI_DOUBLE, recv.data(), recv.size(), MPI_INT, root, MPI_COMM_WORLD);
   MPI_Scatter(buf.data(), buf.size() / size, MPI_DOUBLE, scatter.data(), recv.size(), MPI_INT, root, MPI_COMM_WORLD);
 
   MPI_Gather(recv.data(), recv.size(), MPI_INT,
@@ -163,7 +175,7 @@ TEST(MPI_Scatter, int_to_char) {
   recv.resize((buf.size() / size)*(sizeof(int) / sizeof(char)));
   scatter.resize(recv.size());
 
-  Scatter(buf.data(), buf.size() / size, MPI_INT, recv.data(), recv.size(), MPI_CHAR, root, MPI_COMM_WORLD);
+  FasterScatter(buf.data(), buf.size() / size, MPI_INT, recv.data(), recv.size(), MPI_CHAR, root, MPI_COMM_WORLD);
   MPI_Scatter(buf.data(), buf.size() / size, MPI_INT, scatter.data(), recv.size(), MPI_CHAR, root, MPI_COMM_WORLD);
 
   MPI_Gather(recv.data(), recv.size(), MPI_CHAR,

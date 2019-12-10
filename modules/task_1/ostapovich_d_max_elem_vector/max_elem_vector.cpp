@@ -6,6 +6,7 @@
 #include <random>
 #include <ctime>
 #include <algorithm>
+#include <iostream>
 
 std::vector<int> GetVector(int size, int mode = 0) {
   std::mt19937 generator;
@@ -42,31 +43,32 @@ int SequentialMaxValue(std::vector<int> vec) {
   return max;
 }
 
+void segmentation(int size, int worldSize, int rank, int* segmentStart, int* segmentSize) {
+  *segmentStart = size / worldSize * rank;
+  *segmentSize = size / worldSize;
+  if (rank == worldSize - 1) {
+    *segmentSize += size % worldSize;
+  }
+}
+
 int ParallelMaxValue(std::vector<int> publicVector) {
   int worldRank;
   MPI_Comm_rank(MPI_COMM_WORLD, &worldRank);
   int worldSize;
   MPI_Comm_size(MPI_COMM_WORLD, &worldSize);
 
-  int step = publicVector.size() / worldSize;
-
-  if (worldRank == 0) {
-    for (int id = 1; id < worldSize; id++) {
-      MPI_Send(&publicVector[0] + id * step, step, MPI_INT, id, 0, MPI_COMM_WORLD);
-    }
+  int segmentStart = 0;
+  int segmentSize = 0;
+  if (static_cast<int>(publicVector.size()) <= worldSize) {
+    return SequentialMaxValue(publicVector);
   }
-
-  std::vector<int> privateVector(step);
-
-  if (worldRank == 0) {
-    privateVector = std::vector<int>(publicVector.begin(), publicVector.begin() + step);
-  } else {
-    MPI_Recv(&privateVector[0], step, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-  }
+  segmentation(publicVector.size(), worldSize, worldRank, &segmentStart, &segmentSize);
+  std::vector<int> privateVector = std::vector<int>(publicVector.begin() + segmentStart,
+    publicVector.begin() + segmentStart + segmentSize);
 
   int parallelMax = 0;
-  int seqMax = SequentialMaxValue(publicVector);
-  MPI_Reduce(&seqMax, &parallelMax, 1, MPI_INT, MPI_MAX, 0, MPI_COMM_WORLD);
+  int privateMax = SequentialMaxValue(privateVector);
+  MPI_Reduce(&privateMax, &parallelMax, 1, MPI_INT, MPI_MAX, 0, MPI_COMM_WORLD);
 
   return parallelMax;
 }

@@ -10,8 +10,16 @@ TEST(Parallel_Topology_Line_MPI, Test_Topolgy_Line_Works) {
 
     int world = getMessage(ProcRank, ProcNum, MPI_COMM_WORLD);
     MPI_Comm LineComm = getLineComm(MPI_COMM_WORLD, ProcNum);
+
+    double TotalTime = 0;
+    double startL = MPI_Wtime();
     int line = getMessage(ProcRank, ProcNum, LineComm);
+    double endL = MPI_Wtime() - startL;
+    MPI_Reduce(&endL, &TotalTime, 1, MPI_DOUBLE, MPI_SUM, 0, LineComm);
+
     if (ProcRank == 0) {
+        printf("TotalTime: %f\n", TotalTime);
+
         ASSERT_EQ(world, line);
     }
     if (ProcNum != 1) {

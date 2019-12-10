@@ -183,6 +183,10 @@ std::vector <int> Shell(std::vector <int> mas) {
     std::vector <int> part_mas(k + ostatok, 0);
     MPI_Status status;
 
+
+    MPI_Bcast(&mas[0], size_mas, MPI_INT, 0, MPI_COMM_WORLD);
+
+
     if (flag == 1) {
         mas = ShellSort(mas, size_mas);
         return mas;
