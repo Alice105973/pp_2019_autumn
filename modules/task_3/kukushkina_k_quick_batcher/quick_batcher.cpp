@@ -108,7 +108,7 @@ void quickBatcher(std::vector<int>* vec) {
   if (n <= 0)
     throw "Negative size";
 
-  while(n % size) {
+  while (n % size) {
     vec->push_back(-1000);
     n++;
   }
@@ -141,8 +141,7 @@ void quickBatcher(std::vector<int>* vec) {
         }
       }
       resvec.swap(tmpvec);
-    }
-    else if (rank == b) {
+    } else if (rank == b) {
       MPI_Recv(&curvec[0], len, MPI_INT, a, 0, MPI_COMM_WORLD, &status);
       MPI_Send(&resvec[0], len, MPI_INT, a, 0, MPI_COMM_WORLD);
       int start = len - 1;
