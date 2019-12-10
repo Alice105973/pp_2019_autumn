@@ -14,7 +14,7 @@ static int offset = 0;
 void generateRand(std::vector<int>* vec) {
   std::mt19937 gen;
   gen.seed(static_cast<unsigned int>(time(0)) + offset++);
-  for (int i = 0; i < vec->size(); i++)
+  for (int i = 0; i < static_cast<int>(vec->size()); i++)
     (*vec)[i] = gen() % 100;
   return;
 }
@@ -62,13 +62,13 @@ void addComp(std::vector<int> upvec, std::vector<int> downvec) {
     return;
   }
   std::vector<int> upvec_odd, downvec_odd, upvec_even, downvec_even, vecres(ressize);
-  for (int i = 0; i < upvec.size(); i++) {
+  for (int i = 0; i < static_cast(upvec.size()); i++) {
     if (i % 2)
       upvec_even.push_back(upvec[i]);
     else
       upvec_odd.push_back(upvec[i]);
   }
-  for (int i = 0; i < downvec.size(); i++) {
+  for (int i = 0; i < static_cast<int>(downvec.size()); i++) {
     if (i % 2)
       downvec_even.push_back(downvec[i]);
     else
@@ -115,7 +115,7 @@ void quickBatcher(std::vector<int>* vec) {
   int len = n / size;
 
   std::vector<int> allranks(size);
-  for (int i = 0; i < allranks.size(); i++) {
+  for (int i = 0; i < static_cast<int>(allranks.size()); i++) {
     allranks[i] = i;
   }
   buildNet(allranks);
@@ -124,7 +124,7 @@ void quickBatcher(std::vector<int>* vec) {
 
   MPI_Scatter(&(*vec)[0], len, MPI_INT, &resvec[0], len, MPI_INT, 0, MPI_COMM_WORLD);
   quickSort(&resvec, 0, len - 1);
-  for (int i = 0; i < comparators.size(); i++) {
+  for (int i = 0; i < static_cast<int>(comparators.size()); i++) {
     int a = comparators[i].first, b = comparators[i].second;
     if (rank == a) {
       MPI_Send(&resvec[0], len, MPI_INT, b, 0, MPI_COMM_WORLD);
