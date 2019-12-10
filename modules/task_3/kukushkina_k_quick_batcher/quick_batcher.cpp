@@ -62,7 +62,7 @@ void addComp(std::vector<int> upvec, std::vector<int> downvec) {
     return;
   }
   std::vector<int> upvec_odd, downvec_odd, upvec_even, downvec_even, vecres(ressize);
-  for (int i = 0; i < static_cast(upvec.size()); i++) {
+  for (int i = 0; i < static_cast<int>(upvec.size()); i++) {
     if (i % 2)
       upvec_even.push_back(upvec[i]);
     else
