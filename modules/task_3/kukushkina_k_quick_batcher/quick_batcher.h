@@ -5,9 +5,9 @@
 #include <mpi.h>
 #include <vector>
 
-void generateRand(std::vector<int>& vec);
-bool isSorted(std::vector<int>& vec, int n);
-void quickSort(std::vector<int>& vec, int low, int high);
+void generateRand(std::vector<int>* vec);
+bool isSorted(const std::vector<int>& vec, int n);
+void quickSort(std::vector<int>* vec, int low, int high);
 void addComp(std::vector<int> upvec, std::vector<int> downvec);
 void buildNet(std::vector<int> allranks);
 void quickBatcher(std::vector<int>* vec);

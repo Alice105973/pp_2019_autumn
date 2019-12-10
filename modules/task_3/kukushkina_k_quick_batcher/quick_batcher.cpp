@@ -11,40 +11,40 @@
 std::vector<std::pair<int, int>> comparators;
 static int offset = 0;
 
-void generateRand(std::vector<int>& vec) {
+void generateRand(std::vector<int>* vec) {
   std::mt19937 gen;
   gen.seed(static_cast<unsigned int>(time(0)) + offset++);
-  for (int i = 0; i < vec.size(); i++)
-    vec[i] = gen() % 100;
+  for (int i = 0; i < vec->size(); i++)
+    (*vec)[i] = gen() % 100;
   return;
 }
 
-bool isSorted(std::vector<int>& vec, int n) {
+bool isSorted(const std::vector<int>& vec, int n) {
   for (int i = 0; i < n - 1; i++)
     if (vec[i] > vec[i + 1])
       return false;
   return true;
 }
 
-int partition(std::vector<int>& vec, int low, int high) {
-  int pivot = vec[high];
+int partition(std::vector<int>* vec, int low, int high) {
+  int pivot = (*vec)[high];
   int tmp;
   int i = (low - 1);
   for (int j = low; j <= high - 1; j++) {
-    if (vec[j] < pivot) {
+    if ((*vec)[j] < pivot) {
       i++;
-      tmp = vec[i];
-      vec[i] = vec[j];
-      vec[j] = tmp;
+      tmp = (*vec)[i];
+      (*vec)[i] = (*vec)[j];
+      (*vec)[j] = tmp;
     }
   }
-  tmp = vec[i + 1];
-  vec[i + 1] = vec[high];
-  vec[high] = tmp;
+  tmp = (*vec)[i + 1];
+  (*vec)[i + 1] = (*vec)[high];
+  (*vec)[high] = tmp;
   return (i + 1);
 }
 
-void quickSort(std::vector<int>& vec, int low, int high) {
+void quickSort(std::vector<int>* vec, int low, int high) {
   if (low < high) {
     int pivot = partition(vec, low, high);
     quickSort(vec, low, pivot - 1);
@@ -123,7 +123,7 @@ void quickBatcher(std::vector<int>* vec) {
   std::vector<int> resvec(len), curvec(len), tmpvec(len);
 
   MPI_Scatter(&(*vec)[0], len, MPI_INT, &resvec[0], len, MPI_INT, 0, MPI_COMM_WORLD);
-  quickSort(resvec, 0, len - 1);
+  quickSort(&resvec, 0, len - 1);
   for (int i = 0; i < comparators.size(); i++) {
     int a = comparators[i].first, b = comparators[i].second;
     if (rank == a) {
@@ -135,8 +135,7 @@ void quickBatcher(std::vector<int>* vec) {
         if (res < cur) {
           tmpvec[tmpi] = res;
           resi++;
-        }
-        else {
+        } else {
           tmpvec[tmpi] = cur;
           curi++;
         }
@@ -153,8 +152,7 @@ void quickBatcher(std::vector<int>* vec) {
         if (res > cur) {
           tmpvec[tmpi] = res;
           resi--;
-        }
-        else {
+        } else {
           tmpvec[tmpi] = cur;
           curi--;
         }
