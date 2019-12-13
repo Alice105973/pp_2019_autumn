@@ -46,7 +46,11 @@ TEST(Quick_Batcher_Sort, Equal_Result) {
   vec1 = vec;
   quickSort(&vec, 0, 999);
   quickBatcher(&vec1);
-  ASSERT_EQ(vec == vec1, true);
+  bool eq = true;
+  for (int i = 0; i < 1000; i++)
+    if (vec1[i] != vec[i])
+      eq = false;
+  ASSERT_EQ(eq, true);
 }
 
 /* TEST(Quick_Batcher_Sort, Efficiency) {
