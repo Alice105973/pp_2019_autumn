@@ -190,36 +190,29 @@ TEST(scatter, can_scatter_bin_and_gather_float) {
 }
 
 TEST(scatter, time) {
-  int mes_size = 3;
-  int root = 0;
+  int vec_size = 100;
   int rank, size;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
-  std::vector<int> p(mes_size * size);
-  std::vector<int> dest(mes_size);
-  if (rank == root) {
-    for (int i = 0; i < mes_size * size; ++i) p[i] = i;
+  std::vector<int> p(vec_size);
+
+  if (rank == 0) {
+    Get_rand(&p[0], vec_size);
   }
-  double time_f1, time_s1, time_f2, time_s2, time_f3, time_s3;
+  double time_f1, time_s1, time_f2, time_s2;
   time_f1 = MPI_Wtime();
-  MPI_Scatter_custom(&p[0], mes_size, MPI_INT, &dest[0], mes_size, MPI_INT,
-                     root, MPI_COMM_WORLD);
+  int sum1 = Vector_sum_bin(p);
   time_s1 = MPI_Wtime();
-  if (rank == 0) std::cout << "custom time " << time_s1 - time_f1 << std::endl;
+  if (rank == 0) std::cout << "bin time " << time_s1 - time_f1 << std::endl;
 
   time_f2 = MPI_Wtime();
-  MPI_Scatter_bin(&p[0], mes_size, MPI_INT, &dest[0], mes_size, MPI_INT, root,
-                  MPI_COMM_WORLD);
+  int sum2 = Vector_sum(p);
   time_s2 = MPI_Wtime();
-  if (rank == 0) std::cout << "bin time " << time_s2 - time_f2 << std::endl;
+  if (rank == 0) std::cout << "st time " << time_s2 - time_f2 << std::endl;
 
-  time_f3 = MPI_Wtime();
-  MPI_Scatter(&p[0], mes_size, MPI_INT, &dest[0], mes_size, MPI_INT, root,
-              MPI_COMM_WORLD);
-  time_s3 = MPI_Wtime();
-  if (rank == 0) std::cout << "standart time " << time_s3 - time_f3 << std::endl;
-
-  ASSERT_NO_THROW();
+  if (rank == 0) {
+    EXPECT_EQ(sum1, sum2);
+  }
 }
 
 int main(int argc, char** argv) {

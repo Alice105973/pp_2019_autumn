@@ -111,28 +111,60 @@ TEST(matrix_mult_horiz_schem_only_A, check_correct_par_mult_matrix_1size) {
     }
 }
 
-TEST(matrix_mult_horiz_schem_only_A, check_correct_par_mult_matrix_even_size) {
+TEST(matrix_mult_horiz_schem_only_A, check_correct_par_mult_matrix) {
     int rank;
-    MPI_Barrier(MPI_COMM_WORLD);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-    int sizeSide = 20;
-    std::vector<int> matrixA = createRandomMatrix(sizeSide);
-    std::vector<int> matrixB = createRandomMatrix(sizeSide);
+    int sizeSide = 2;
+    std::vector<int> matrixA(sizeSide * sizeSide);
+    std::vector<int> matrixB(sizeSide * sizeSide);
+    std::vector<int> correctAnswer(sizeSide * sizeSide);
 
-    // double startPar = MPI_Wtime();
+    matrixA[0] = 1;
+    matrixA[1] = 2;
+    matrixA[2] = 3;
+    matrixA[3] = 4;
+
+    matrixB[0] = 5;
+    matrixB[1] = 6;
+    matrixB[2] = 7;
+    matrixB[3] = 8;
+
+    correctAnswer[0] = 19;
+    correctAnswer[1] = 22;
+    correctAnswer[2] = 43;
+    correctAnswer[3] = 50;
+
     std::vector<int> resultPar = getMatrixMultPar(matrixA, matrixB, sizeSide);
-    // double endPar = MPI_Wtime();
 
     if (rank == 0) {
-        // double startSeq = MPI_Wtime();
-        std::vector<int> resultSeq = getMatrixMultSeq(matrixA, matrixB, sizeSide);
-        // double endSeq = MPI_Wtime();
-        ASSERT_EQ(resultSeq, resultPar);
-        // std::cout << "Time seq: " << endSeq - startSeq << std::endl;
-        // std::cout << "Time par: " << endPar - startPar << std::endl;
+        ASSERT_EQ(correctAnswer, resultPar);
     }
 }
+
+// TEST(matrix_mult_horiz_schem_only_A, check_correct_par_mult_matrix_for_time) {
+//    int rank;
+//    MPI_Barrier(MPI_COMM_WORLD);
+//    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+//
+//    int sizeSide = 20;
+//    std::vector<int> matrixA = createRandomMatrix(sizeSide);
+//    std::vector<int> matrixB = createRandomMatrix(sizeSide);
+//
+//    // double startPar = MPI_Wtime();
+//    std::vector<int> resultPar = getMatrixMultPar(matrixA, matrixB, sizeSide);
+//    // double endPar = MPI_Wtime();
+//
+//    if (rank == 0) {
+//        // double startSeq = MPI_Wtime();
+//        std::vector<int> resultSeq = getMatrixMultSeq(matrixA, matrixB, sizeSide);
+//        // double endSeq = MPI_Wtime();
+//        ASSERT_EQ(resultSeq, resultPar);
+//        // std::cout << "Time seq: " << endSeq - startSeq << std::endl;
+//        // std::cout << "Time par: " << endPar - startPar << std::endl;
+//    }
+// }
+
 
 int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);

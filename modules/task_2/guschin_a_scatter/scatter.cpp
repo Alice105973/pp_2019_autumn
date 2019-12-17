@@ -4,6 +4,9 @@
 #include <cstring>
 #include <string>
 #include <vector>
+#include <iostream>
+#include <random>
+#include <ctime>
 
 int MPI_Scatter_custom(void* send_buf, int send_count, MPI_Datatype send_type,
                        void* recv_buf, int recv_count, MPI_Datatype recv_type,
@@ -161,4 +164,78 @@ int MPI_Scatter_bin(void* send_buf, int send_count, MPI_Datatype send_type,
   }
 
   return MPI_SUCCESS;
+}
+
+double Vector_sum_bin(std::vector<int> vec) {
+  int size, rank;
+  MPI_Comm_size(MPI_COMM_WORLD, &size);
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+  int vec_size = 0;
+  if (rank == 0) vec_size = vec.size();
+
+  MPI_Bcast(&vec_size, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+  int gen_size = vec_size / size;
+  int side_size = vec_size % size;
+
+  std::vector<double> local_vec(gen_size);
+
+  if (rank == 0) local_vec.resize(gen_size + side_size);
+
+  MPI_Scatter_bin(&vec[0], gen_size, MPI_INT, &local_vec[0], gen_size, MPI_INT,
+                  0, MPI_COMM_WORLD);
+  if (rank == 0) {
+    for (int i = 0; i < gen_size + side_size; ++i) local_vec[i] = vec[i];
+  }
+
+  int local_size = local_vec.size();
+  double global_sum = 0;
+  double local_sum = 0;
+  for (int i = 0; i < local_size; ++i) local_sum += local_vec[i];
+
+  MPI_Reduce(&local_sum, &global_sum, 1, MPI_INT, MPI_SUM, 0,
+             MPI_COMM_WORLD);
+  return global_sum;
+}
+
+double Vector_sum(std::vector<int> vec) {
+  int size, rank;
+  MPI_Comm_size(MPI_COMM_WORLD, &size);
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+  int vec_size = 0;
+  if (rank == 0) vec_size = vec.size();
+
+  MPI_Bcast(&vec_size, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+  int gen_size = vec_size / size;
+  int side_size = vec_size % size;
+
+  std::vector<double> local_vec(gen_size);
+
+  if (rank == 0) local_vec.resize(gen_size + side_size);
+
+  MPI_Scatter(&vec[0], gen_size, MPI_INT, &local_vec[0], gen_size, MPI_INT, 0,
+              MPI_COMM_WORLD);
+  if (rank == 0) {
+    for (int i = 0; i < gen_size + side_size; ++i) local_vec[i] = vec[i];
+  }
+
+  int local_size = local_vec.size();
+  double global_sum = 0;
+  double local_sum = 0;
+  for (int i = 0; i < local_size; ++i) local_sum += local_vec[i];
+
+  MPI_Reduce(&local_sum, &global_sum, 1, MPI_INT, MPI_SUM, 0,
+             MPI_COMM_WORLD);
+  return global_sum;
+}
+
+void Get_rand(int* ptr, int size) {
+  std::mt19937 gen;
+  gen.seed(time(0));
+  for (int i = 0; i < size; i++) {
+    ptr[i] = gen() % 207;
+  }
 }

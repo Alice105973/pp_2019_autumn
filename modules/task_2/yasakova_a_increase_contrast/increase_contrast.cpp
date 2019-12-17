@@ -92,8 +92,8 @@ std::vector <int> ParallelIncreaseContrast(const std::vector <int>& mtx, int row
         for (int i = 0; i < amount_ + rest_; i++) {
             int delta = i -  Middle;
             palette[i] = Middle + correction * delta;
-            if (palette[i] > 256) {
-                palette[i] = 256;
+            if (palette[i] > 255) {
+                palette[i] = 255;
             } else if (palette[i] < 0) {
                 palette[i] = 0;
             }
@@ -108,8 +108,8 @@ std::vector <int> ParallelIncreaseContrast(const std::vector <int>& mtx, int row
         for (int i = 0; i < amount_; i++) {
             int delta = i + amount_ + rest_ + amount_ * (rank - 1) - Middle;
             a[i] = Middle + correction * delta;
-            if (a[i] > 256) {
-                a[i] = 256;
+            if (a[i] > 255) {
+                a[i] = 255;
             }
             if (a[i] < 0) {
                 a[i] = 0;
@@ -159,8 +159,8 @@ std::vector <int> SequentialIncreaseContrast(const std::vector <int>& mtx, int r
     for (int i = 0; i < 256; i++) {
         int delta = i - Middle;
         palette[i] = Middle + correction * delta;
-        if (palette[i] > 256) {
-            palette[i] = 256;
+        if (palette[i] > 255) {
+            palette[i] = 255;
         }
         if (palette[i] < 0) {
             palette[i] = 0;
