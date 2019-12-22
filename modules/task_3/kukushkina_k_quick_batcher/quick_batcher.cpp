@@ -165,5 +165,6 @@ void quickBatcher(std::vector<int>* vec) {
     n -= fictive;
     vec->resize(n);
   }
+  MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
   MPI_Bcast(&(*vec)[0], n, MPI_INT, 0, MPI_COMM_WORLD);
 }
