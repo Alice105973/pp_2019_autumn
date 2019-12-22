@@ -12,10 +12,10 @@
 #define WANT_EAT 1  // need forks
 #define ALLOW_EAT 2  // allow to take two nearest forks
 #define END_EAT 3  // ended eating and released forks
-#define EATING_CYCLE 2  // each philosopher have to eat EATING_CYCLE times
+#define EATING_CYCLE 1  // each philosopher have to eat EATING_CYCLE times
 
 void philosopher(int rank) {
-    printf("Hello from philosopher %d! \n", rank);
+    // printf("Hello from philosopher %d! \n", rank);
     int in_buffer[1];
     int out_buffer[1];
     MPI_Status stat;
@@ -28,7 +28,7 @@ void philosopher(int rank) {
 }
 
 std::vector<bool> waiter(int philosophers_count) {
-    printf("Hello from waiter! \n");
+    // printf("Hello from waiter! \n");
     int in_buffer[1];
     int out_buffer[1];
     int philosopher;
@@ -102,10 +102,10 @@ std::vector<bool> waiter(int philosophers_count) {
                 }
             }
         }
-        printVector(number_of_eating_cycles);
-        printVector(all_ate_eating_cycle_times);
+        // printVector(number_of_eating_cycles);
+        // printVector(all_ate_eating_cycle_times);
     }
-    printf("Waiter finished his work! ");
+    // printf("Waiter finished his work! ");
     return all_ate_eating_cycle_times;
 }
 
