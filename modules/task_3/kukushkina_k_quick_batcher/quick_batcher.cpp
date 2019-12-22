@@ -100,17 +100,18 @@ void buildNet(std::vector<int> allranks) {
 void quickBatcher(std::vector<int>* vec) {
   MPI_Status status;
   int rank, size;
-  int vecsize = static_cast<int>(vec->size());
-  int n = vecsize;
+  int n = static_cast<int>(vec->size());
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
 
   if (n <= 0)
     throw "Negative size";
 
+  int fictive = 0;
   while (n % size) {
-    vec->push_back(-1000);
+    vec->push_back(1000);
     n++;
+    fictive++;
   }
   int len = n / size;
 
@@ -160,9 +161,9 @@ void quickBatcher(std::vector<int>* vec) {
     }
   }
   MPI_Gather(&resvec[0], len, MPI_INT, &(*vec)[0], len, MPI_INT, 0, MPI_COMM_WORLD);
-  int elDiff = n - vecsize;
-  if (rank == 0 && elDiff) {
-    vec->erase(vec->begin(), vec->begin() + elDiff);
+  if (rank == 0 && fictive) {
+    n -= fictive;
+    vec->resize(n);
   }
-  MPI_Bcast(&(*vec)[0], vecsize, MPI_INT, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&(*vec)[0], n, MPI_INT, 0, MPI_COMM_WORLD);
 }
