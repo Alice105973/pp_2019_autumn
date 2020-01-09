@@ -31,14 +31,13 @@ MPI_Comm getHypercube(int dim) {
   if (dim < 1) {
     throw "Cart size error!!!";
   }
-
   int size;
   MPI_Comm_size(MPI_COMM_WORLD, &size);
   int* dimension = new int[dim];
   int* period = new int[dim];
   for (int i = 0; i < dim; i++) {
-    dimension[i] = 2;
     period[i] = 1;
+    dimension[i] = 2;
   }
 
   if (size == getCountVertex(dim)) {

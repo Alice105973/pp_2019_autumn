@@ -28,7 +28,7 @@ TEST(Fox, Test_on_Matrix_size_4) {
     Fox(A, B, CFox, size);
 
     if (rank == 0) {
-      for (int i = 0; i < size * size; ++i) ASSERT_DOUBLE_EQ(CFox[i], C[i]);
+      for (int i = 0; i < size * size; ++i) ASSERT_NEAR(CFox[i], C[i], 0.0001);
     }
 
     if (rank == 0) {
@@ -64,7 +64,7 @@ TEST(Fox, Test_on_Matrix_size_16) {
     Fox(A, B, CFox, size);
 
     if (rank == 0) {
-      for (int i = 0; i < size * size; ++i) ASSERT_DOUBLE_EQ(CFox[i], C[i]);
+      for (int i = 0; i < size * size; ++i) ASSERT_NEAR(CFox[i], C[i], 0.0001);
     }
 
     if (rank == 0) {
@@ -100,7 +100,7 @@ TEST(Fox, Test_on_Matrix_size_64) {
     Fox(A, B, CFox, size);
 
     if (rank == 0) {
-      for (int i = 0; i < size * size; ++i) ASSERT_DOUBLE_EQ(CFox[i], C[i]);
+      for (int i = 0; i < size * size; ++i) ASSERT_NEAR(CFox[i], C[i], 0.0001);
     }
 
     if (rank == 0) {

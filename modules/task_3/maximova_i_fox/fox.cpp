@@ -66,7 +66,7 @@ void BlockMultiplication(double* Ablock, double* Bblock, double* Cblock,
       temp = 0;
       for (int k = 0; k < _blockSize; k++)
         temp += Ablock[i * _blockSize + k] * Bblock[k * _blockSize + j];
-      Cblock[i * _blockSize + j] += static_cast<int>(temp * 100) / 100;
+      Cblock[i * _blockSize + j] += temp;
     }
 }
 
@@ -150,9 +150,9 @@ void SequentialAlgorithm(double* A, double* B, double* C, int size) {
 
 void RandomOperandMatrix(double* A, double* B, int size) {
   std::mt19937 gen;
-  gen.seed((unsigned)time(0));
+  gen.seed(static_cast<unsigned int>(time(0)));
   for (int i = 0; i < size * size; ++i) {
-    A[i] = 1 + static_cast<int>(gen() / gen.max() * 1000) / 100;
-    B[i] = 1 + static_cast<int>(gen() / gen.max() * 1000) / 100;
+    A[i] = gen() % 5 + static_cast<float>(gen() % 10) / 10;
+    B[i] = gen() % 5 + static_cast<float>(gen() % 10) / 10;
   }
 }
